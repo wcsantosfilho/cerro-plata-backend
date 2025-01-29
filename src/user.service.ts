@@ -42,4 +42,16 @@ export class UserService {
         return userData;
     }
 
+    deleteUser(id: number): User[] {
+
+        const index = this.users.findIndex( u => u.id == id);
+        if (index < 0) {
+            throw new NotFoundException
+        }
+
+        const user = this.users.splice(index, 1);
+
+        return user;
+    }
+
 }
