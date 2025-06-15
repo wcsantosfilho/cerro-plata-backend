@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, Patch, Post, Delete, NotFoundException } from '@nestjs/common';
-import { UserService } from './user.service';
+import { UserService } from './users.service';
 import { User } from '@prisma/client';
 
 @Controller('users')
