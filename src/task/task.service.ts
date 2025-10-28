@@ -5,9 +5,9 @@ import { FindAllParameters, TaskDto } from './task.dto';
 export class TaskService {
   private tasks: TaskDto[] = [];
 
-  create(task: TaskDto) {
+  create(task: TaskDto): TaskDto {
     this.tasks.push(task);
-    console.log(this.tasks);
+    return task;
   }
 
   findById(id: string): TaskDto {

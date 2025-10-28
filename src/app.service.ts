@@ -6,10 +6,6 @@ export class AppService {
     return '/';
   }
 
-  getHello(): string {
-    return 'Hello World!';
-  }
-
   getHealth(): string {
     return `I'm healthy. Are you?`;
   }
