@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { FindAllParameters, TaskDto, TaskStatusEnum } from './task.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Like, Repository } from 'typeorm';
-import { TaskEntity } from '../db/entities/task.entity';
+import { TaskEntity } from 'src/db/entities/task.entity';
 
 @Injectable()
 export class TaskService {
