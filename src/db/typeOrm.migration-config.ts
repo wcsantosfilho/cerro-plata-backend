@@ -8,6 +8,8 @@ config();
 
 const configService = new ConfigService();
 
+console.log(`Running migration on env ${process.env.NODE_ENV}`);
+
 const dataSourceOptions: DataSourceOptions = {
   type: 'postgres',
   host: configService.get<string>('DB_HOST'),
@@ -18,6 +20,10 @@ const dataSourceOptions: DataSourceOptions = {
   entities: [TaskEntity, UserEntity],
   migrations: [__dirname + '/migrations/*.ts'],
   synchronize: false,
+  ssl:
+    process.env.NODE_ENV === 'production'
+      ? { rejectUnauthorized: false }
+      : false,
 };
 
 export default new DataSource(dataSourceOptions);
