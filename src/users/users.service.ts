@@ -13,7 +13,7 @@ export class UsersService {
     private readonly usersRepository: Repository<UserEntity>,
   ) {}
 
-  async create(newUser: UserDto) {
+  async create(newUser: UserDto): Promise<Partial<UserDto>> {
     const userAlreadyRegistered = await this.findByUserName(newUser.username);
 
     if (userAlreadyRegistered) {
@@ -25,9 +25,9 @@ export class UsersService {
     const dbUser = new UserEntity();
     dbUser.username = newUser.username;
     dbUser.passwordHash = bcryptHashSync(newUser.password, 10);
-    const { id, username } = await this.usersRepository.save(dbUser);
+    const createdUser = await this.usersRepository.save(dbUser);
 
-    return { id, username };
+    return this.mapEntityToDto(createdUser);
   }
 
   async findByUserName(username: string): Promise<UserDto | null> {
@@ -43,6 +43,13 @@ export class UsersService {
       id: userFound?.id,
       username: userFound?.username,
       password: userFound?.passwordHash,
+    };
+  }
+
+  private mapEntityToDto(userEntity: UserEntity): Partial<UserDto> {
+    return {
+      id: userEntity.id,
+      username: userEntity.username,
     };
   }
 }
