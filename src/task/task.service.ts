@@ -6,8 +6,6 @@ import { TaskEntity } from '../db/entities/task.entity';
 
 @Injectable()
 export class TaskService {
-  private tasks: TaskDto[] = [];
-
   constructor(
     @InjectRepository(TaskEntity)
     private readonly taskRepository: Repository<TaskEntity>,
