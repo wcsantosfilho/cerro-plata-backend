@@ -61,4 +61,5 @@ docker-compose.yml
 .vercel
 
 # sql initial files
-.firstRecord.sql 
+.firstRecord.sql
+*.sql
