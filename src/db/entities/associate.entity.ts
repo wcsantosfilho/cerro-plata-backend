@@ -40,7 +40,7 @@ export class AssociateEntity {
   @Column({ type: 'varchar', name: 'phone_number' })
   phoneNumber: string;
 
-  @Column((type) => Address)
+  @Column(() => Address, { prefix: '' })
   address: Address;
 
   @Column({ type: 'varchar' })
