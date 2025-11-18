@@ -14,7 +14,9 @@ let cachedApp: any;
 async function bootstrapServer() {
   if (!cachedApp) {
     const app = await NestFactory.create(AppModule);
-    app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
+    app.useGlobalPipes(
+      new ValidationPipe({ transform: true, whitelist: true }),
+    );
     await app.init();
 
     cachedApp = app.getHttpAdapter().getInstance();

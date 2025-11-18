@@ -2,13 +2,14 @@ import {
   IsDateString,
   IsEnum,
   IsObject,
-  IsOptional,
   IsPhoneNumber,
+  IsOptional,
   IsString,
   IsUUID,
   MaxLength,
   MinLength,
 } from 'class-validator';
+import { ToPhone } from '../../src/common/decorators/to-phone.decorator';
 
 export enum AssociateTypeEnum {
   REGULAR = 'REGULAR',
@@ -29,7 +30,9 @@ export class AssociateDto {
   @MaxLength(256)
   name: string;
 
+  @IsString()
   @IsPhoneNumber()
+  @ToPhone()
   phoneNumber: string;
 
   @IsObject()
