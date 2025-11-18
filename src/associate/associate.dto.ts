@@ -58,11 +58,11 @@ export class AssociateDto {
 }
 
 export interface FindAllParameters {
-  title: string;
-  status: string;
+  name: string;
+  type: string;
 }
 
-export class TaskRouteParameters {
+export class AssociateRouteParameters {
   @IsUUID()
   id: string;
 }

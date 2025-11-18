@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, HttpStatus, HttpException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AssociateEntity } from '../db/entities/associate.entity';
@@ -26,6 +26,21 @@ export class AssociateService {
     return this.mapEntityToDto(createdAssociate);
   }
 
+  async update(id: string, associate: AssociateDto) {
+    const foundAssociate = await this.associateRepository.findOne({
+      where: { id },
+    });
+
+    if (!foundAssociate) {
+      throw new HttpException(
+        `Associate with id: ${associate.id} not found`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    await this.associateRepository.update(id, this.mapDtoToEntity(associate));
+  }
+
   private mapEntityToDto(associateEntity: AssociateEntity): AssociateDto {
     const typeKey = associateEntity.type as keyof typeof AssociateTypeEnum;
     return {
@@ -37,6 +52,17 @@ export class AssociateService {
       type: AssociateTypeEnum[typeKey],
       createdAt: associateEntity.createdAt,
       updatedAt: associateEntity.updatedAt,
+    };
+  }
+
+  private mapDtoToEntity(associateDto: AssociateDto): Partial<AssociateEntity> {
+    return {
+      id: associateDto.id,
+      associationRecord: associateDto.associationRecord,
+      name: associateDto.name,
+      phoneNumber: associateDto.phoneNumber,
+      address: associateDto.address,
+      type: associateDto.type.toString(),
     };
   }
 }

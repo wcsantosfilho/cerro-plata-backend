@@ -1,6 +1,6 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Param, Post, Put } from '@nestjs/common';
 import { AssociateService } from './associate.service';
-import { AssociateDto } from './associate.dto';
+import { AssociateDto, AssociateRouteParameters } from './associate.dto';
 
 @Controller('associate')
 export class AssociateController {
@@ -9,5 +9,13 @@ export class AssociateController {
   @Post()
   async create(@Body() associate: AssociateDto): Promise<AssociateDto> {
     return await this.associatesService.create(associate);
+  }
+
+  @Put('/:id')
+  async update(
+    @Param() params: AssociateRouteParameters,
+    @Body() associate: AssociateDto,
+  ) {
+    await this.associatesService.update(params.id, associate);
   }
 }

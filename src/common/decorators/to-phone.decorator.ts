@@ -13,7 +13,6 @@ export function ToPhone() {
       if (typeof value !== 'string') return undefined;
 
       const parsed = parsePhoneNumberFromString(value);
-      console.dir(`original: ${value}`);
 
       if (!parsed) return undefined;
       if (!validCountries.includes(parsed.country ?? '')) return undefined;
