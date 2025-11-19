@@ -14,15 +14,17 @@ export class UsersService {
 
   async create(newUser: UserDto): Promise<Partial<UserDto>> {
     const userAlreadyRegistered = await this.findByUserName(newUser.username);
+    const emailAlreadyRegistered = await this.findByEmail(newUser.email);
 
-    if (userAlreadyRegistered) {
+    if (userAlreadyRegistered || emailAlreadyRegistered) {
       throw new ConflictException(
-        `User '${newUser.username}' already registered.`,
+        `User '${newUser.username}, ${newUser.email}' already registered.`,
       );
     }
 
     const dbUser = new UserEntity();
     dbUser.username = newUser.username;
+    dbUser.email = newUser.email;
     dbUser.passwordHash = bcryptHashSync(newUser.password, 10);
     const createdUser = await this.usersRepository.save(dbUser);
 
@@ -40,6 +42,24 @@ export class UsersService {
 
     return {
       id: userFound?.id,
+      email: userFound?.email,
+      username: userFound?.username,
+      password: userFound?.passwordHash,
+    };
+  }
+
+  async findByEmail(email: string): Promise<UserDto | null> {
+    const userFound = await this.usersRepository.findOne({
+      where: { email },
+    });
+
+    if (!userFound) {
+      return null;
+    }
+
+    return {
+      id: userFound?.id,
+      email: userFound?.email,
       username: userFound?.username,
       password: userFound?.passwordHash,
     };
@@ -49,6 +69,7 @@ export class UsersService {
     return {
       id: userEntity.id,
       username: userEntity.username,
+      email: userEntity.email,
     };
   }
 }

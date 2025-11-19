@@ -9,9 +9,9 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Post('login')
   async signIn(
-    @Body('username') username: string,
+    @Body('email') email: string,
     @Body('password') password: string,
   ): Promise<AuthResponseDto> {
-    return await this.authService.signIn(username, password);
+    return await this.authService.signIn(email, password);
   }
 }
