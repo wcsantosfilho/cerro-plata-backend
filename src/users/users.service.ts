@@ -2,7 +2,7 @@ import { ConflictException, Injectable } from '@nestjs/common';
 import { UserDto } from './user.dto';
 import { hashSync as bcryptHashSync } from 'bcrypt';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserEntity } from '../db/entities/user.entity';
+import { UserEntity } from '../db/entities/users.entity';
 import { Repository } from 'typeorm';
 
 @Injectable()

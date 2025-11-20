@@ -6,7 +6,7 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { DbModule } from './db/db.module';
-import { AssociateModule } from './associate/associate.module';
+import { AssociatesModule } from './associates/associates.module';
 
 @Module({
   imports: [
@@ -15,7 +15,7 @@ import { AssociateModule } from './associate/associate.module';
     UsersModule,
     AuthModule,
     DbModule,
-    AssociateModule,
+    AssociatesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

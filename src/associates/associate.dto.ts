@@ -9,7 +9,7 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
-import { ToPhone } from '../../src/common/decorators/to-phone.decorator';
+import { ToPhone } from '../common/decorators/to-phone.decorator';
 
 export enum AssociateTypeEnum {
   REGULAR = 'REGULAR',

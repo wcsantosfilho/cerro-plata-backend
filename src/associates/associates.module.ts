@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
-import { AssociateService } from './associate.service';
-import { AssociateController } from './associate.controller';
+import { AssociatesService } from './associates.service';
+import { AssociatesController } from './associates.controller';
 import { AssociateEntity } from 'src/db/entities/associate.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
-  controllers: [AssociateController],
+  controllers: [AssociatesController],
   imports: [TypeOrmModule.forFeature([AssociateEntity])],
-  providers: [AssociateService],
+  providers: [AssociatesService],
 })
-export class AssociateModule {}
+export class AssociatesModule {}

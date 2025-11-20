@@ -1,11 +1,15 @@
 import { Injectable, HttpStatus, HttpException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindOptionsWhere, Like, Repository } from 'typeorm';
 import { AssociateEntity } from '../db/entities/associate.entity';
-import { AssociateDto, AssociateTypeEnum } from './associate.dto';
+import {
+  AssociateDto,
+  AssociateTypeEnum,
+  FindAllParameters,
+} from './associate.dto';
 
 @Injectable()
-export class AssociateService {
+export class AssociatesService {
   constructor(
     @InjectRepository(AssociateEntity)
     private readonly associateRepository: Repository<AssociateEntity>,
@@ -24,6 +28,26 @@ export class AssociateService {
     const createdAssociate =
       await this.associateRepository.save(associateToSave);
     return this.mapEntityToDto(createdAssociate);
+  }
+
+  async findAll(params: FindAllParameters): Promise<AssociateDto[]> {
+    const searchParams: FindOptionsWhere<AssociateEntity> = {};
+
+    if (params.name) {
+      searchParams.name = Like(`%${params.name}%`);
+    }
+
+    if (params.type) {
+      searchParams.type = Like(`%${params.type}%`);
+    }
+
+    const associatesFound = await this.associateRepository.find({
+      where: searchParams,
+    });
+
+    return associatesFound.map((associateEntity) =>
+      this.mapEntityToDto(associateEntity),
+    );
   }
 
   async update(id: string, associate: AssociateDto) {
