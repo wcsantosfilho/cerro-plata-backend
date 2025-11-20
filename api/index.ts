@@ -4,6 +4,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from '../src/app.module';
 import { ValidationPipe } from '@nestjs/common';
+import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
 
 let cachedApp: any;
 
@@ -14,13 +15,27 @@ let cachedApp: any;
 async function bootstrapServer() {
   if (!cachedApp) {
     const app = await NestFactory.create(AppModule);
-    console.log(`FRONT no index.ts: ${process.env.FRONTEND_ORIGIN}`);
-    app.enableCors({
-      origin: process.env.FRONTEND_ORIGIN ?? 'http://localhost:8080',
+
+    const allowedOrigins = ['http://localhost:8080'];
+    allowedOrigins.push(process.env.FRONTEND_ORIGIN?.toString() ?? '');
+
+    const corsOptions: CorsOptions = {
+      origin: (origin, callback) => {
+        if (!origin) return callback(null, true);
+
+        if (allowedOrigins.includes(origin)) {
+          callback(null, true);
+        } else {
+          callback(new Error(`CORS blocked for origin: ${origin}`), false);
+        }
+      },
       methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
       allowedHeaders: 'Content-Type, Authorization, Accept',
       credentials: true,
-    });
+    };
+
+    console.log(`FRONT no index.ts: ${process.env.FRONTEND_ORIGIN}`);
+    app.enableCors(corsOptions);
 
     app.useGlobalPipes(
       new ValidationPipe({ transform: true, whitelist: true }),
