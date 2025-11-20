@@ -16,7 +16,10 @@ async function bootstrapServer() {
   if (!cachedApp) {
     const app = await NestFactory.create(AppModule);
 
-    const allowedOrigins = ['http://localhost:8080'];
+    const allowedOrigins = [
+      process.env.FRONTEND_ORIGIN_LOCAL?.toString() ?? '',
+    ];
+    allowedOrigins.push(process.env.FRONTEND_ORIGIN_ALT?.toString() ?? '');
     allowedOrigins.push(process.env.FRONTEND_ORIGIN?.toString() ?? '');
 
     const corsOptions: CorsOptions = {
