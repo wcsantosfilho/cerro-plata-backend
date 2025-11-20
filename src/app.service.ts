@@ -7,6 +7,6 @@ export class AppService {
   }
 
   getHealth(): string {
-    return `I'm healthy. Are you?`;
+    return `I'm healthy. Are you? ${process.env.FRONTEND_ORIGIN}`;
   }
 }
