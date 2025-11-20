@@ -14,6 +14,14 @@ let cachedApp: any;
 async function bootstrapServer() {
   if (!cachedApp) {
     const app = await NestFactory.create(AppModule);
+    console.log(`FRONT no index.ts: ${process.env.FRONTEND_ORIGIN}`);
+    app.enableCors({
+      origin: process.env.FRONTEND_ORIGIN ?? 'http://localhost:8080',
+      methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+      allowedHeaders: 'Content-Type, Authorization, Accept',
+      credentials: true,
+    });
+
     app.useGlobalPipes(
       new ValidationPipe({ transform: true, whitelist: true }),
     );
