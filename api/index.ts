@@ -55,7 +55,7 @@ async function bootstrapServer() {
       )
       .build();
     const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig);
-    SwaggerModule.setup('/api-docs', app, swaggerDocument, {
+    SwaggerModule.setup('/docs', app, swaggerDocument, {
       swaggerOptions: {
         url: '/docs-json',
       },
