@@ -25,6 +25,16 @@ export class AssociatesService {
       type: AssociateTypeEnum[typeKey],
     };
 
+    const existingAssociate = await this.findByAssociationRecord(
+      associate.associationRecord,
+    );
+    if (existingAssociate) {
+      throw new HttpException(
+        `Associate with associationRecord: ${associate.associationRecord} already exists`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
     const createdAssociate =
       await this.associateRepository.save(associateToSave);
     return this.mapEntityToDto(createdAssociate);
@@ -50,6 +60,20 @@ export class AssociatesService {
     );
   }
 
+  async findByAssociationRecord(
+    associationRecord: string,
+  ): Promise<AssociateDto | null> {
+    const associateFound = await this.associateRepository.findOne({
+      where: { associationRecord },
+    });
+
+    if (!associateFound) {
+      return null;
+    }
+
+    return this.mapEntityToDto(associateFound);
+  }
+
   async update(id: string, associate: AssociateDto) {
     const foundAssociate = await this.associateRepository.findOne({
       where: { id },
@@ -58,6 +82,16 @@ export class AssociatesService {
     if (!foundAssociate) {
       throw new HttpException(
         `Associate with id: ${associate.id} not found`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const existingAssociate = await this.findByAssociationRecord(
+      associate.associationRecord,
+    );
+    if (existingAssociate) {
+      throw new HttpException(
+        `Associate with associationRecord: ${associate.associationRecord} already exists`,
         HttpStatus.BAD_REQUEST,
       );
     }
