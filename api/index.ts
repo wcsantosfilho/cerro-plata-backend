@@ -55,8 +55,13 @@ async function bootstrapServer() {
       )
       .build();
     const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig);
-    SwaggerModule.setup('/api-docs', app, swaggerDocument);
+    SwaggerModule.setup('/api-docs', app, swaggerDocument, {
+      swaggerOptions: {
+        url: '/docs-json',
+      },
+    });
 
+    app.setGlobalPrefix('');
     app.useGlobalPipes(
       new ValidationPipe({ transform: true, whitelist: true }),
     );
