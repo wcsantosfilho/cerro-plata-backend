@@ -9,6 +9,7 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ToPhone } from '../common/decorators/to-phone.decorator';
 
 export enum AssociateTypeEnum {
@@ -22,19 +23,48 @@ export class AssociateDto {
   @IsOptional()
   id?: string;
 
+  @ApiProperty({
+    required: true,
+    description: 'Association Record',
+    example: '1014',
+  })
   @IsString()
   associationRecord: string;
 
+  @ApiProperty({
+    required: true,
+    description: 'Name of the associate',
+    example: 'Margie',
+  })
   @IsString()
   @MinLength(3)
   @MaxLength(256)
   name: string;
 
+  @ApiPropertyOptional({
+    required: false,
+    description: 'Phone number of the associate',
+    example: '+5512988775544',
+  })
   @IsString()
   @IsPhoneNumber()
   @ToPhone()
+  @IsOptional()
   phoneNumber: string;
 
+  @ApiPropertyOptional({
+    required: false,
+    description: 'Address of the associate',
+    example: {
+      zipCode: '12345-678',
+      streetName: 'Main St',
+      streetNumber: '123',
+      city: 'Anytown',
+      state: 'CA',
+      country: 'USA',
+    },
+  })
+  @IsOptional()
   @IsObject()
   address: {
     zipCode: string;
@@ -45,6 +75,12 @@ export class AssociateDto {
     country: string;
   };
 
+  @ApiProperty({
+    required: true,
+    description: 'Type of the associate',
+    example: 'REGULAR',
+    enum: AssociateTypeEnum,
+  })
   @IsEnum(AssociateTypeEnum)
   type: string;
 

@@ -5,6 +5,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from '../src/app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 let cachedApp: any;
 
@@ -39,6 +40,22 @@ async function bootstrapServer() {
 
     console.log(`FRONT no index.ts: ${process.env.FRONTEND_ORIGIN}`);
     app.enableCors(corsOptions);
+
+    const swaggerConfig = new DocumentBuilder()
+      .setTitle('Cerro Plata API')
+      .setDescription('API documentation for Cerro Plata backend')
+      .setVersion('1.0')
+      .addBearerAuth(
+        {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+        },
+        'access-token', // nome da referência (pode ser usado no decorator))
+      )
+      .build();
+    const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig);
+    SwaggerModule.setup('api-docs', app, swaggerDocument);
 
     app.useGlobalPipes(
       new ValidationPipe({ transform: true, whitelist: true }),
