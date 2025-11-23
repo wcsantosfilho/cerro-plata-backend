@@ -15,9 +15,23 @@
     <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@4/swagger-ui-bundle.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@4/swagger-ui-standalone-preset.js"></script>
     <script>
-      window.onload = () => {
+      async function findSwaggerJsonUrl() {
+        const candidates = ['/api/api-docs-json', '/api-docs-json'];
+        for (const url of candidates) {
+          try {
+            const res = await fetch(url, { method: 'GET' });
+            if (res.ok) return url;
+          } catch (e) {
+            // ignore and try next
+          }
+        }
+        return '/api/api-docs-json'; // fallback
+      }
+
+      window.onload = async () => {
+        const swaggerUrl = await findSwaggerJsonUrl();
         const ui = SwaggerUIBundle({
-          url: '/api/api-docs-json',
+          url: swaggerUrl,
           dom_id: '#swagger-ui',
           presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset],
           layout: 'StandaloneLayout',
