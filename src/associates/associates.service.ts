@@ -1,6 +1,6 @@
 import { Injectable, HttpStatus, HttpException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindOptionsWhere, Like, Repository } from 'typeorm';
+import { FindOptionsWhere, ILike, Repository } from 'typeorm';
 import { AssociateEntity } from '../db/entities/associate.entity';
 import {
   AssociateDto,
@@ -44,11 +44,15 @@ export class AssociatesService {
     const searchParams: FindOptionsWhere<AssociateEntity> = {};
 
     if (params.name) {
-      searchParams.name = Like(`%${params.name}%`);
+      searchParams.name = ILike(`%${params.name}%`);
     }
 
     if (params.type) {
-      searchParams.type = Like(`%${params.type}%`);
+      searchParams.type = ILike(`%${params.type}%`);
+    }
+
+    if (params.associationrecord) {
+      searchParams.associationRecord = ILike(`%${params.associationrecord}%`);
     }
 
     const associatesFound = await this.associateRepository.find({
@@ -74,6 +78,21 @@ export class AssociatesService {
     return this.mapEntityToDto(associateFound);
   }
 
+  async findById(id: string): Promise<AssociateDto | null> {
+    const associateFound = await this.associateRepository.findOne({
+      where: { id },
+    });
+
+    if (!associateFound) {
+      throw new HttpException(
+        `Associate with id: ${id} not found`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    return this.mapEntityToDto(associateFound);
+  }
+
   async update(id: string, associate: AssociateDto) {
     const foundAssociate = await this.associateRepository.findOne({
       where: { id },
@@ -81,7 +100,7 @@ export class AssociatesService {
 
     if (!foundAssociate) {
       throw new HttpException(
-        `Associate with id: ${associate.id} not found`,
+        `Associate with id: ${id} not found`,
         HttpStatus.BAD_REQUEST,
       );
     }

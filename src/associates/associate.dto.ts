@@ -96,6 +96,7 @@ export class AssociateDto {
 export interface FindAllParameters {
   name: string;
   type: string;
+  associationrecord: string;
 }
 
 export class AssociateRouteParameters {

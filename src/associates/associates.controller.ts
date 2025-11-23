@@ -54,6 +54,12 @@ export class AssociatesController {
     example: 'Margie',
   })
   @ApiQuery({
+    name: 'associationrecord',
+    required: false,
+    description: 'Filtra pela matrícula do associado',
+    example: '1010',
+  })
+  @ApiQuery({
     name: 'type',
     required: false,
     description: 'Filtra pelo tipo de associado',
@@ -61,6 +67,32 @@ export class AssociatesController {
   })
   async findAll(@Query() params: FindAllParameters): Promise<AssociateDto[]> {
     return await this.associatesService.findAll(params);
+  }
+
+  @Get('/:id')
+  @ApiOperation({ summary: 'Get an associate by ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Associate successfully retrieved.',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Associate not found.',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Request parameters are invalid.',
+  })
+  @ApiQuery({
+    name: 'type',
+    required: false,
+    description: 'Filtra pelo tipo de associado',
+    enum: ['REGULAR', 'REDEEMED', 'FOUNDER'],
+  })
+  async findById(
+    @Param() params: AssociateRouteParameters,
+  ): Promise<AssociateDto | null> {
+    return await this.associatesService.findById(params.id);
   }
 
   @Put('/:id')
