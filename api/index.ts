@@ -41,6 +41,11 @@ async function bootstrapServer() {
     console.log(`FRONT no index.ts: ${process.env.FRONTEND_ORIGIN}`);
     app.enableCors(corsOptions);
 
+    // Use a single global prefix so Swagger assets and endpoints
+    // are registered under the same /api path when deployed to Vercel.
+    const globalPrefix = 'api';
+    app.setGlobalPrefix(globalPrefix);
+
     const swaggerConfig = new DocumentBuilder()
       .setTitle('Cerro Plata API')
       .setDescription('API documentation for Cerro Plata backend')
@@ -55,9 +60,9 @@ async function bootstrapServer() {
       )
       .build();
     const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig);
-    SwaggerModule.setup('api/api-docs', app, swaggerDocument);
 
-    app.setGlobalPrefix('api');
+    // Register Swagger UI under /api/api-docs (consistent with globalPrefix)
+    SwaggerModule.setup(`${globalPrefix}/api-docs`, app, swaggerDocument);
     app.useGlobalPipes(
       new ValidationPipe({ transform: true, whitelist: true }),
     );

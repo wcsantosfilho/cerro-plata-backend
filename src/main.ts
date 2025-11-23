@@ -7,6 +7,12 @@ async function bootstrap() {
   console.log(`Running certo-plata-backend on Vercel: ${process.env.NODE_ENV}`);
   const app = await NestFactory.create(AppModule);
   console.log(`FRONT: ${process.env.FRONTEND_ORIGIN}`);
+
+  // Use a single global prefix so Swagger assets and endpoints
+  // are registered under the same /api path when deployed to Vercel.
+  const globalPrefix = 'api';
+  app.setGlobalPrefix(globalPrefix);
+
   app.enableCors({
     origin: process.env.FRONTEND_ORIGIN ?? 'http://localhost:8080',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
@@ -28,9 +34,9 @@ async function bootstrap() {
     )
     .build();
   const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup('api/api-docs', app, swaggerDocument);
+  // Register Swagger UI under /api/api-docs (consistent with globalPrefix)
+  SwaggerModule.setup(`${globalPrefix}/api-docs`, app, swaggerDocument);
 
-  app.setGlobalPrefix('api');
   app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
   await app.listen(process.env.PORT ?? 3000);
 }
