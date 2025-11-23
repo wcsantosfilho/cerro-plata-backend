@@ -61,7 +61,7 @@ async function bootstrapServer() {
       },
     });
 
-    app.setGlobalPrefix('');
+    app.setGlobalPrefix('api');
     app.useGlobalPipes(
       new ValidationPipe({ transform: true, whitelist: true }),
     );
