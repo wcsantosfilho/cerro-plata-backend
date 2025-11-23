@@ -55,7 +55,7 @@ async function bootstrapServer() {
       )
       .build();
     const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig);
-    SwaggerModule.setup('/api/api-docs', app, swaggerDocument);
+    SwaggerModule.setup('api/api-docs', app, swaggerDocument);
 
     app.setGlobalPrefix('api');
     app.useGlobalPipes(
