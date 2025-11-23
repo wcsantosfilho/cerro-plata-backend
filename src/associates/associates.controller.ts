@@ -15,6 +15,7 @@ import {
   ApiResponse,
   ApiQuery,
   ApiBearerAuth,
+  ApiParam,
 } from '@nestjs/swagger';
 import { AuthGuard } from 'src/auth/auth.guard';
 import {
@@ -71,6 +72,13 @@ export class AssociatesController {
 
   @Get('/:id')
   @ApiOperation({ summary: 'Get an associate by ID' })
+  @ApiParam({
+    name: 'id',
+    description: 'ID do associado (UUID)',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+    required: true,
+    type: String,
+  })
   @ApiResponse({
     status: 200,
     description: 'Associate successfully retrieved.',
@@ -82,12 +90,6 @@ export class AssociatesController {
   @ApiResponse({
     status: 400,
     description: 'Request parameters are invalid.',
-  })
-  @ApiQuery({
-    name: 'type',
-    required: false,
-    description: 'Filtra pelo tipo de associado',
-    enum: ['REGULAR', 'REDEEMED', 'FOUNDER'],
   })
   async findById(
     @Param() params: AssociateRouteParameters,
