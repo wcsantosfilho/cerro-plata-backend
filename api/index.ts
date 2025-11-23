@@ -55,11 +55,7 @@ async function bootstrapServer() {
       )
       .build();
     const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig);
-    SwaggerModule.setup('/docs', app, swaggerDocument, {
-      swaggerOptions: {
-        url: '/docs-json',
-      },
-    });
+    SwaggerModule.setup('/api/api-docs', app, swaggerDocument);
 
     app.setGlobalPrefix('api');
     app.useGlobalPipes(
