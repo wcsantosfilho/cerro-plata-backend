@@ -37,7 +37,12 @@ async function bootstrap() {
   // Register Swagger UI under /api/api-docs (consistent with globalPrefix)
   SwaggerModule.setup(`${globalPrefix}/api-docs`, app, swaggerDocument);
 
-  app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+      whitelist: true,
+    }),
+  );
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();

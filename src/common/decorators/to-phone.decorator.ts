@@ -10,6 +10,7 @@ const validCountries = ['US', 'UK', 'BR'];
 export function ToPhone() {
   return Transform(
     ({ value }) => {
+      if (value === '' || value === null) return null;
       if (typeof value !== 'string') return undefined;
 
       const parsed = parsePhoneNumberFromString(value);
