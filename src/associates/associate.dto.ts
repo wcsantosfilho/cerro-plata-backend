@@ -8,14 +8,40 @@ import {
   IsUUID,
   MaxLength,
   MinLength,
+  ValidateNested,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ToPhone } from '../common/decorators/to-phone.decorator';
+import { Type } from 'class-transformer';
 
 export enum AssociateTypeEnum {
   REGULAR = 'REGULAR',
   FOUNDER = 'FOUNDER',
   REDEEMED = 'REDEEMED',
+}
+
+class AddressDto {
+  @IsString()
+  zipCode: string;
+
+  @IsString()
+  streetName: string;
+
+  @IsString()
+  streetNumber: string;
+
+  @IsString()
+  @IsOptional()
+  addressComplement?: string;
+
+  @IsString()
+  city: string;
+
+  @IsString()
+  state: string;
+
+  @IsString()
+  country: string;
 }
 
 export class AssociateDto {
@@ -59,6 +85,7 @@ export class AssociateDto {
       zipCode: '12345-678',
       streetName: 'Main St',
       streetNumber: '123',
+      addressComplement: 'Apt 4B',
       city: 'Anytown',
       state: 'CA',
       country: 'USA',
@@ -66,14 +93,9 @@ export class AssociateDto {
   })
   @IsOptional()
   @IsObject()
-  address: {
-    zipCode: string;
-    streetName: string;
-    streetNumber: string;
-    city: string;
-    state: string;
-    country: string;
-  };
+  @ValidateNested() // habilita validação recursiva
+  @Type(() => AddressDto) // converte JSON para instância de AddressDto
+  address: AddressDto;
 
   @ApiProperty({
     required: true,

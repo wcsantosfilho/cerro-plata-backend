@@ -105,14 +105,16 @@ export class AssociatesService {
       );
     }
 
-    const existingAssociate = await this.findByAssociationRecord(
-      associate.associationRecord,
-    );
-    if (existingAssociate) {
-      throw new HttpException(
-        `Associate with associationRecord: ${associate.associationRecord} already exists`,
-        HttpStatus.BAD_REQUEST,
+    if (associate.associationRecord !== foundAssociate.associationRecord) {
+      const existingAssociate = await this.findByAssociationRecord(
+        associate.associationRecord,
       );
+      if (existingAssociate) {
+        throw new HttpException(
+          `Associate with associationRecord: ${associate.associationRecord} already exists`,
+          HttpStatus.BAD_REQUEST,
+        );
+      }
     }
 
     await this.associateRepository.update(id, this.mapDtoToEntity(associate));

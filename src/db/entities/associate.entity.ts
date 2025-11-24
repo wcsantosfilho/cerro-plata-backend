@@ -16,6 +16,9 @@ class Address {
   @Column({ name: 'street_number' })
   streetNumber: string;
 
+  @Column({ name: 'address_complement' })
+  addressComplement?: string;
+
   @Column()
   city: string;
 
