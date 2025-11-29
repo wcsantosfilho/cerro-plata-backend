@@ -46,7 +46,8 @@ export class AssociatesController {
   @ApiOperation({ summary: 'Get all associates' })
   @ApiResponse({
     status: 200,
-    description: 'List of associates retrieved successfully.',
+    description:
+      'Paginated list of associates retrieved successfully. Returns { items, total }.',
   })
   @ApiQuery({
     name: 'name',
@@ -66,7 +67,21 @@ export class AssociatesController {
     description: 'Filtra pelo tipo de associado',
     enum: ['REGULAR', 'REDEEMED', 'FOUNDER'],
   })
-  async findAll(@Query() params: FindAllParameters): Promise<AssociateDto[]> {
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    description: 'Page number (1-based)',
+    example: 1,
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: 'Number of items per page',
+    example: 10,
+  })
+  async findAll(
+    @Query() params: FindAllParameters,
+  ): Promise<{ items: AssociateDto[]; total: number }> {
     return await this.associatesService.findAll(params);
   }
 

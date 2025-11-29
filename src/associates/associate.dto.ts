@@ -116,9 +116,13 @@ export class AssociateDto {
 }
 
 export interface FindAllParameters {
-  name: string;
-  type: string;
-  associationrecord: string;
+  name?: string;
+  type?: string;
+  associationrecord?: string;
+  // Pagination
+  page?: number | string;
+  limit?: number | string;
+  skip?: number | string;
 }
 
 export class AssociateRouteParameters {

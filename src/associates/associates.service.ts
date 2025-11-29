@@ -40,28 +40,41 @@ export class AssociatesService {
     return this.mapEntityToDto(createdAssociate);
   }
 
-  async findAll(params: FindAllParameters): Promise<AssociateDto[]> {
+  async findAll(
+    params: FindAllParameters,
+  ): Promise<{ items: AssociateDto[]; total: number }> {
     const searchParams: FindOptionsWhere<AssociateEntity> = {};
 
-    if (params.name) {
+    if (params?.name) {
       searchParams.name = ILike(`%${params.name}%`);
     }
 
-    if (params.type) {
+    if (params?.type) {
       searchParams.type = ILike(`%${params.type}%`);
     }
 
-    if (params.associationrecord) {
+    if (params?.associationrecord) {
       searchParams.associationRecord = ILike(`%${params.associationrecord}%`);
     }
 
-    const associatesFound = await this.associateRepository.find({
+    // pagination defaults
+    const page = params?.page ? Number(params.page) : 1;
+    const limit = params?.limit ? Math.min(Number(params.limit), 100) : 10;
+    const skip = params?.skip
+      ? Number(params.skip)
+      : (Math.max(page, 1) - 1) * limit;
+
+    const [entities, total] = await this.associateRepository.findAndCount({
       where: searchParams,
+      take: limit,
+      skip,
     });
 
-    return associatesFound.map((associateEntity) =>
+    const items = entities.map((associateEntity) =>
       this.mapEntityToDto(associateEntity),
     );
+
+    return { items, total };
   }
 
   async findByAssociationRecord(
