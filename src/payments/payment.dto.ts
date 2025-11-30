@@ -1,0 +1,95 @@
+import {
+  IsDateString,
+  IsEnum,
+  IsNumber,
+  IsOptional,
+  IsPositive,
+  IsString,
+  IsUUID,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+
+export enum PaymentTypeEnum {
+  COURSE = 'COURSE',
+  MEMBERSHIP_FEE = 'MEMBERSHIP_FEE',
+  SHOP = 'SHOP',
+}
+
+export class PaymentDto {
+  @IsUUID()
+  @IsOptional()
+  id?: string;
+
+  @IsUUID()
+  @IsOptional()
+  associateId?: string;
+
+  @ApiProperty({
+    required: true,
+    description: 'Payment effective date',
+    example: '2024-06-15T14:30:00Z',
+  })
+  @IsDateString()
+  effectiveDate: string;
+
+  @ApiProperty({
+    required: true,
+    description: 'Payment due date',
+    example: '2024-06-15T14:30:00Z',
+  })
+  @IsDateString()
+  dueDate: string;
+
+  @ApiProperty({
+    required: true,
+    description: 'Description of the payment',
+    example: 'Monthly membership fee',
+  })
+  @IsString()
+  @MinLength(3)
+  @MaxLength(256)
+  description: string;
+
+  @ApiProperty({
+    required: true,
+    description: 'Amount paid',
+    example: '100.00',
+  })
+  @IsNumber()
+  @IsPositive()
+  amount: number;
+
+  @ApiProperty({
+    required: true,
+    description: 'Type of payment',
+    example: 'COURSE',
+    enum: PaymentTypeEnum,
+  })
+  @IsEnum(PaymentTypeEnum)
+  type: string;
+
+  @IsDateString()
+  @IsOptional()
+  createdAt: Date;
+
+  @IsDateString()
+  @IsOptional()
+  updatedAt: Date;
+}
+
+export interface FindAllParameters {
+  effective?: string;
+  type?: string;
+  associationrecord?: string;
+  // Pagination
+  page?: number | string;
+  limit?: number | string;
+  skip?: number | string;
+}
+
+export class AssociateRouteParameters {
+  @IsUUID()
+  id: string;
+}

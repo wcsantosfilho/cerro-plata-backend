@@ -4,7 +4,10 @@ import {
   UpdateDateColumn,
   Entity,
   PrimaryGeneratedColumn,
+  OneToMany,
 } from 'typeorm';
+
+import { PaymentEntity } from './payment.entity';
 
 class Address {
   @Column({ name: 'zip_code' })
@@ -54,4 +57,7 @@ export class AssociateEntity {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
+
+  @OneToMany(() => PaymentEntity, (payment) => payment.associate)
+  payments?: PaymentEntity[];
 }
