@@ -80,16 +80,21 @@ export class PaymentDto {
 }
 
 export interface FindAllParameters {
-  effective?: string;
+  effectiveDate?: string;
+  dueDate?: string;
   type?: string;
-  associationrecord?: string;
   // Pagination
   page?: number | string;
   limit?: number | string;
   skip?: number | string;
 }
 
-export class AssociateRouteParameters {
+export class PaymentRouteParameters {
   @IsUUID()
   id: string;
+}
+
+export class AssociateRouteParameters {
+  @IsUUID()
+  associateId: string;
 }
