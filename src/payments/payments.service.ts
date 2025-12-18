@@ -62,6 +62,7 @@ export class PaymentsService {
       where: searchParams,
       take: limit,
       skip,
+      relations: ['associate'],
     });
 
     const items = entities.map((paymentsEntity) =>
@@ -77,6 +78,7 @@ export class PaymentsService {
   ): Promise<{ items: PaymentDto[]; total: number }> {
     const query = this.paymentRepository
       .createQueryBuilder('payment')
+      .leftJoinAndSelect('payment.associate', 'associate')
       .where('payment.associate_id = :associateId', { associateId });
 
     if (queryParams?.effectiveDate) {

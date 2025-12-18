@@ -8,7 +8,9 @@ import {
   IsUUID,
   MaxLength,
   MinLength,
+  Min,
   ValidateNested,
+  IsNumber,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ToPhone } from '../common/decorators/to-phone.decorator';
@@ -115,14 +117,36 @@ export class AssociateDto {
   updatedAt: Date;
 }
 
-export interface FindAllParameters {
+export class FindAllParameters {
+  @IsOptional()
+  @IsString()
   name?: string;
+
+  @IsOptional()
+  @IsString()
   type?: string;
+
+  @IsOptional()
+  @IsString()
   associationrecord?: string;
-  // Pagination
-  page?: number | string;
-  limit?: number | string;
-  skip?: number | string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({}, { message: 'Page must be a number' })
+  @Min(0)
+  page?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({}, { message: 'Limit must be a number' })
+  @Min(0)
+  limit?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({}, { message: 'Skip must be a number' })
+  @Min(0)
+  skip?: number;
 }
 
 export class AssociateRouteParameters {

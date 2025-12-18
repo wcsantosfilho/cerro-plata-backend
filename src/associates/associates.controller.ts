@@ -7,6 +7,8 @@ import {
   Put,
   Query,
   UseGuards,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import { AssociatesService } from './associates.service';
 import {
@@ -79,6 +81,7 @@ export class AssociatesController {
     description: 'Number of items per page',
     example: 10,
   })
+  @UsePipes(new ValidationPipe({ transform: true }))
   async findAll(
     @Query() params: FindAllParameters,
   ): Promise<{ items: AssociateDto[]; total: number }> {
