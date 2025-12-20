@@ -14,6 +14,9 @@ import {
   FindAllParameters,
 } from './payment.dto';
 import { PaymentsService } from '../payments/payments.service';
+import { ApiCreatePaymentDocs } from './docs/create-payment.doc';
+import { ApiFindAllPaymentsDocs } from './docs/findall-payment.docs';
+import { ApiFindByAssociateDocs } from './docs/findbyassociate-payment.doc';
 
 @UseGuards(AuthGuard)
 @Controller('payments')
@@ -21,11 +24,13 @@ export class PaymentsController {
   constructor(private readonly paymentsService: PaymentsService) {}
 
   @Post()
+  @ApiCreatePaymentDocs()
   async create(@Body() payment: PaymentDto): Promise<PaymentDto> {
     return await this.paymentsService.create(payment);
   }
 
   @Get()
+  @ApiFindAllPaymentsDocs()
   async findAll(
     @Query() params: FindAllParameters,
   ): Promise<{ items: PaymentDto[]; total: number }> {
@@ -33,6 +38,7 @@ export class PaymentsController {
   }
 
   @Get('/associate/:associateId')
+  @ApiFindByAssociateDocs()
   async findByAssociate(
     @Param() params: AssociateRouteParameters,
     @Query() queryParams: FindAllParameters,
