@@ -9,7 +9,7 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export enum PaymentTypeEnum {
   COURSE = 'COURSE',
@@ -26,12 +26,13 @@ export class PaymentDto {
   @IsOptional()
   associateId?: string;
 
-  @ApiProperty({
-    required: true,
+  @ApiPropertyOptional({
+    required: false,
     description: 'Payment effective date',
     example: '2024-06-15T14:30:00Z',
   })
   @IsDateString()
+  @IsOptional()
   effectiveDate: string;
 
   @ApiProperty({
