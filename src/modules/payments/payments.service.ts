@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, FindOptionsWhere } from 'typeorm';
-import { PaymentEntity } from '../db/entities/payment.entity';
+import { PaymentEntity } from '../../db/entities/payment.entity';
 import { PaymentDto, PaymentTypeEnum, FindAllParameters } from './payment.dto';
 import { AssociatesService } from '../associates/associates.service';
 

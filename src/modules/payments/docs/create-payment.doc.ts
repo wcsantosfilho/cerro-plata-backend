@@ -1,5 +1,6 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiCommonErrors } from '../../../common/decorators/api/api-error.doc';
 
 export function ApiCreatePaymentDocs() {
   return applyDecorators(
@@ -9,5 +10,6 @@ export function ApiCreatePaymentDocs() {
       description: 'The payment has been really successfully created.',
     }),
     ApiResponse({ status: 400, description: 'Bad Request.' }),
+    ApiCommonErrors(),
   );
 }

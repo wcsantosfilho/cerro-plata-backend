@@ -1,7 +1,7 @@
 import { Injectable, HttpStatus, HttpException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, ILike, Repository } from 'typeorm';
-import { AssociateEntity } from '../db/entities/associate.entity';
+import { AssociateEntity } from '../../db/entities/associate.entity';
 import {
   AssociateDto,
   AssociateTypeEnum,

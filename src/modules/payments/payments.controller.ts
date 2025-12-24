@@ -7,16 +7,16 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { AuthGuard } from '../auth/auth.guard';
+import { AuthGuard } from '../../auth/auth.guard';
 import {
   AssociateRouteParameters,
   PaymentDto,
   FindAllParameters,
 } from './payment.dto';
-import { PaymentsService } from '../payments/payments.service';
+import { PaymentsService } from './payments.service';
 import { ApiCreatePaymentDocs } from './docs/create-payment.doc';
-import { ApiFindAllPaymentsDocs } from './docs/findall-payment.docs';
-import { ApiFindByAssociateDocs } from './docs/findbyassociate-payment.doc';
+import { ApiFindAllPaymentsDocs } from './docs/find-all-payment.docs';
+import { ApiFindByAssociateDocs } from './docs/find-by-associate-payment.doc';
 
 @UseGuards(AuthGuard)
 @Controller('payments')

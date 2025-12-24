@@ -1,5 +1,7 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
+import { ApiCommonErrors } from '../../../common/decorators/api/api-error.doc';
+import { ApiPaginationQueries } from 'src/common/decorators/api/api-pagination.doc';
 
 export function ApiFindAllPaymentsDocs() {
   return applyDecorators(
@@ -9,7 +11,6 @@ export function ApiFindAllPaymentsDocs() {
       description:
         'Paginated list of payments retrieved successfully. Returns { items, total }.',
     }),
-    ApiResponse({ status: 400, description: 'Bad Request.' }),
     ApiQuery({
       name: 'effectiveDate',
       required: false,
@@ -23,17 +24,7 @@ export function ApiFindAllPaymentsDocs() {
       enum: ['COURSE', 'MEMBERSHIP_FEE', 'SHOP'],
       example: 'SHOP',
     }),
-    ApiQuery({
-      name: 'page',
-      required: false,
-      description: 'Page number (1-based)',
-      example: 1,
-    }),
-    ApiQuery({
-      name: 'limit',
-      required: false,
-      description: 'NNumber of items per page',
-      example: 10,
-    }),
+    ApiPaginationQueries(),
+    ApiCommonErrors(),
   );
 }

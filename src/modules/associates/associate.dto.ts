@@ -13,7 +13,7 @@ import {
   IsNumber,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { ToPhone } from '../common/decorators/to-phone.decorator';
+import { ToPhone } from '../../common/decorators/to-phone.decorator';
 import { Type } from 'class-transformer';
 
 export enum AssociateTypeEnum {

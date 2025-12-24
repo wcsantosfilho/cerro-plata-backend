@@ -4,11 +4,11 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { AssociatesModule } from './associates/associates.module';
+import { AssociatesModule } from './modules/associates/associates.module';
 import { AuthModule } from './auth/auth.module';
 import { DbModule } from './db/db.module';
-import { PaymentsModule } from './payments/payments.module';
-import { UsersModule } from './users/users.module';
+import { PaymentsModule } from './modules/payments/payments.module';
+import { UsersModule } from './modules/users/users.module';
 
 @Module({
   imports: [
