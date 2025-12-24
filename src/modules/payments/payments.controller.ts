@@ -13,12 +13,15 @@ import {
   PaymentDto,
   FindAllParameters,
 } from './payment.dto';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { PaymentsService } from './payments.service';
 import { ApiCreatePaymentDocs } from './docs/create-payment.doc';
 import { ApiFindAllPaymentsDocs } from './docs/find-all-payment.docs';
 import { ApiFindByAssociateDocs } from './docs/find-by-associate-payment.doc';
 
+@ApiTags('payments')
 @UseGuards(AuthGuard)
+@ApiBearerAuth('access-token')
 @Controller('payments')
 export class PaymentsController {
   constructor(private readonly paymentsService: PaymentsService) {}

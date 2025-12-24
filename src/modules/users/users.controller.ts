@@ -7,12 +7,14 @@ import {
   ApiResponse,
   ApiTags,
   ApiBearerAuth,
+  ApiExcludeController,
 } from '@nestjs/swagger';
 
 @ApiTags('users')
 @UseGuards(AuthGuard)
 @ApiBearerAuth('access-token')
 @Controller('users')
+@ApiExcludeController()
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
