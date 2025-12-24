@@ -16,4 +16,21 @@ export class AuthController {
   ): Promise<AuthResponseDto> {
     return await this.authService.signIn(email, password);
   }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('refresh')
+  async refresh(@Body('refreshToken') refreshToken: string): Promise<{
+    token: string;
+    expiresIn: number;
+    refreshToken?: string;
+    refreshExpiresIn?: number;
+  }> {
+    return await this.authService.refreshToken(refreshToken);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('logout')
+  async logout(@Body('refreshToken') refreshToken: string): Promise<void> {
+    await this.authService.revokeRefreshToken(refreshToken);
+  }
 }
