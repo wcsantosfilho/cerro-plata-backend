@@ -1,7 +1,7 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiQuery, ApiParam } from '@nestjs/swagger';
 import { ApiCommonErrors } from '../../../common/decorators/api/api-error.doc';
-import { ApiPaginationQueries } from 'src/common/decorators/api/api-pagination.doc';
+import { ApiPaginationQueries } from '../../../common/decorators/api/api-pagination.doc';
 
 export function ApiFindByAssociateDocs() {
   return applyDecorators(
