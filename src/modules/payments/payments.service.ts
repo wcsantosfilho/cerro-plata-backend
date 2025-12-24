@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, FindOptionsWhere } from 'typeorm';
 import { PaymentEntity } from '../../db/entities/payment.entity';
@@ -14,6 +14,16 @@ export class PaymentsService {
   ) {}
 
   async create(payment: PaymentDto): Promise<PaymentDto> {
+    if (
+      (payment.type as PaymentTypeEnum) === PaymentTypeEnum.MEMBERSHIP_FEE &&
+      !payment.associateId
+    ) {
+      throw new HttpException(
+        'MEMBERSHIP_FEES payments must have an associated associateId',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
     let associate = null;
     if (payment.associateId) {
       associate = await this.associatesService.findById(payment.associateId);
