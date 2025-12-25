@@ -29,7 +29,7 @@ export class AuthService {
   private readonly accessTokenExpirySeconds =
     Number(this.configService.get('JWT_EXPIRATION_TIME')) || 15 * 60;
 
-  private readonly refreshTokenExpiryMs =
+  private readonly refreshTokenExpiry =
     Number(this.configService.get('REFRESH_TOKEN_EXPIRATION_TIME')) ||
     7 * 24 * 60 * 60 * 1000; // 7 days
   async signIn(email: string, password: string): Promise<AuthResponseDto> {
@@ -50,7 +50,7 @@ export class AuthService {
       bcryptHash(plaintext, 10, (err, hash) => (err ? rej(err) : res(hash))),
     );
 
-    const expiresAt = new Date(Date.now() + this.refreshTokenExpiryMs);
+    const expiresAt = new Date(Date.now() + this.refreshTokenExpiry);
 
     const refreshEntity = this.refreshTokenRepository.create({
       tokenHash,
@@ -68,7 +68,7 @@ export class AuthService {
       expiresIn: 15 * 60, // 15 minutes in seconds
       user: foundUser.username,
       refreshToken,
-      refreshExpiresIn: Math.floor(this.refreshTokenExpiryMs / 1000),
+      refreshExpiresIn: this.refreshTokenExpiry,
     };
   }
 
@@ -110,7 +110,7 @@ export class AuthService {
     const newHash = await new Promise<string>((res, rej) =>
       bcryptHash(newPlain, 10, (err, hash) => (err ? rej(err) : res(hash))),
     );
-    const newExpiresAt = new Date(Date.now() + this.refreshTokenExpiryMs);
+    const newExpiresAt = new Date(Date.now() + this.refreshTokenExpiry);
 
     const newEntity = this.refreshTokenRepository.create({
       tokenHash: newHash,
@@ -128,7 +128,7 @@ export class AuthService {
       token,
       expiresIn: 15 * 60,
       refreshToken: `${saved.id}.${newPlain}`,
-      refreshExpiresIn: Math.floor(this.refreshTokenExpiryMs / 1000),
+      refreshExpiresIn: this.refreshTokenExpiry,
     };
   }
 
