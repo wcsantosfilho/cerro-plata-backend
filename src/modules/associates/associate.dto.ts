@@ -147,6 +147,14 @@ export class FindAllParameters {
   @IsNumber({}, { message: 'Skip must be a number' })
   @Min(0)
   skip?: number;
+
+  @IsOptional()
+  @IsString()
+  sortBy?: string;
+
+  @IsOptional()
+  @IsString()
+  sortOrder?: 'ASC' | 'DESC';
 }
 
 export class AssociateRouteParameters {

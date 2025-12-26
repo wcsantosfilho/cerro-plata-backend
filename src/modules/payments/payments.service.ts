@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, FindOptionsWhere } from 'typeorm';
+import { Repository } from 'typeorm';
 import { PaymentEntity } from '../../db/entities/payment.entity';
 import { PaymentDto, PaymentTypeEnum, FindAllParameters } from './payment.dto';
 import { AssociatesService } from '../associates/associates.service';
@@ -49,14 +49,35 @@ export class PaymentsService {
     items: PaymentDto[];
     total: number;
   }> {
-    const searchParams: FindOptionsWhere<PaymentEntity> = {};
+    const query = this.paymentRepository
+      .createQueryBuilder('payment')
+      .leftJoinAndSelect('payment.associate', 'associate');
 
     if (queryParams?.effectiveDate) {
-      searchParams.effectiveDate = queryParams.effectiveDate;
+      query.andWhere('payment.effective_date = :effectiveDate', {
+        effectiveDate: queryParams.effectiveDate,
+      });
     }
 
     if (queryParams?.type) {
-      searchParams.type = queryParams.type;
+      query.andWhere('payment.type = :type', {
+        type: queryParams.type,
+      });
+    }
+
+    // sorting
+    if (queryParams?.sortBy) {
+      const validatedSortFields = this.paymentRepository.metadata.columns.map(
+        (col) => col.propertyName,
+      );
+      if (!validatedSortFields.includes(queryParams.sortBy || '')) {
+        throw new HttpException('Invalid sortBy field', HttpStatus.BAD_REQUEST);
+      }
+      const sortOrder =
+        queryParams?.sortOrder?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
+      query.orderBy(`payment.${queryParams.sortBy}`, sortOrder);
+    } else {
+      query.orderBy('payment.createdAt', 'DESC');
     }
 
     // pagination defaults
@@ -68,12 +89,10 @@ export class PaymentsService {
       ? Number(queryParams.skip)
       : (Math.max(page, 1) - 1) * limit;
 
-    const [entities, total] = await this.paymentRepository.findAndCount({
-      where: searchParams,
-      take: limit,
-      skip,
-      relations: ['associate'],
-    });
+    const [entities, total] = await query
+      .limit(limit)
+      .offset(skip)
+      .getManyAndCount();
 
     const items = entities.map((paymentsEntity) =>
       this.mapEntityToDto(paymentsEntity),
@@ -101,6 +120,21 @@ export class PaymentsService {
       query.andWhere('payment.type = :type', {
         type: queryParams.type,
       });
+    }
+
+    // sorting
+    if (queryParams?.sortBy) {
+      const validatedSortFields = this.paymentRepository.metadata.columns.map(
+        (col) => col.propertyName,
+      );
+      if (!validatedSortFields.includes(queryParams.sortBy || '')) {
+        throw new HttpException('Invalid sortBy field', HttpStatus.BAD_REQUEST);
+      }
+      const sortOrder =
+        queryParams?.sortOrder?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
+      query.orderBy(`payment.${queryParams.sortBy}`, sortOrder);
+    } else {
+      query.orderBy('payment.createdAt', 'DESC');
     }
 
     // pagination defaults

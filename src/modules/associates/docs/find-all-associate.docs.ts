@@ -2,6 +2,7 @@ import { applyDecorators } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import { ApiCommonErrors } from '../../../common/decorators/api/api-error.doc';
 import { ApiPaginationQueries } from '../../../common/decorators/api/api-pagination.doc';
+import { ApiSortingQueries } from '../../../common/decorators/api/api-sorting.doc';
 
 export function ApiFindAllAssociatesDoc() {
   return applyDecorators(
@@ -31,5 +32,6 @@ export function ApiFindAllAssociatesDoc() {
     }),
     ApiPaginationQueries(),
     ApiCommonErrors(),
+    ApiSortingQueries(),
   );
 }

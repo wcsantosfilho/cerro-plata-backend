@@ -1,6 +1,6 @@
 import { Injectable, HttpStatus, HttpException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindOptionsWhere, ILike, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { AssociateEntity } from '../../db/entities/associate.entity';
 import {
   AssociateDto,
@@ -41,54 +41,58 @@ export class AssociatesService {
   }
 
   async findAll(
-    params: FindAllParameters,
+    queryParams: FindAllParameters,
   ): Promise<{ items: AssociateDto[]; total: number }> {
-    const searchParams: FindOptionsWhere<AssociateEntity> = {};
+    const query = this.associateRepository.createQueryBuilder('associate');
 
-    if (params?.name) {
-      searchParams.name = ILike(`%${params.name}%`);
+    if (queryParams?.name) {
+      query.andWhere('associate.name ILIKE :name', {
+        name: `%${queryParams.name}%`,
+      });
+    }
+    if (queryParams?.type) {
+      query.andWhere('associate.type = :type', { type: queryParams.type });
+    }
+    if (queryParams?.associationrecord) {
+      query.andWhere('associate.associationRecord = :associationRecord', {
+        associationRecord: `${queryParams.associationrecord}`,
+      });
     }
 
-    if (params?.type) {
-      searchParams.type = ILike(`%${params.type}%`);
-    }
-
-    if (params?.associationrecord) {
-      searchParams.associationRecord = ILike(`%${params.associationrecord}%`);
+    // sorting
+    if (queryParams?.sortBy) {
+      const validColumns = this.associateRepository.metadata.columns.map(
+        (col) => col.propertyName,
+      );
+      if (!validColumns.includes(queryParams?.sortBy || '')) {
+        throw new HttpException('Invalid sortBy field', HttpStatus.BAD_REQUEST);
+      }
+      const sortOrder =
+        queryParams.sortOrder?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
+      query.orderBy(`associate.${queryParams.sortBy}`, sortOrder);
+    } else {
+      query.orderBy('associate.createdAt', 'DESC'); // default sorting
     }
 
     // pagination defaults
-    const page = params?.page ? Number(params.page) : 1;
-    const limit = params?.limit ? Math.min(Number(params.limit), 100) : 10;
-    const skip = params?.skip
-      ? Number(params.skip)
+    const page = queryParams?.page ? Number(queryParams.page) : 1;
+    const limit = queryParams?.limit
+      ? Math.min(Number(queryParams.limit), 100)
+      : 10;
+    const skip = queryParams?.skip
+      ? Number(queryParams.skip)
       : (Math.max(page, 1) - 1) * limit;
 
-    const [entities, total] = await this.associateRepository.findAndCount({
-      where: searchParams,
-      take: limit,
-      skip,
-    });
+    const [entities, total] = await query
+      .limit(limit)
+      .offset(skip)
+      .getManyAndCount();
 
     const items = entities.map((associateEntity) =>
       this.mapEntityToDto(associateEntity),
     );
 
     return { items, total };
-  }
-
-  async findByAssociationRecord(
-    associationRecord: string,
-  ): Promise<AssociateDto | null> {
-    const associateFound = await this.associateRepository.findOne({
-      where: { associationRecord },
-    });
-
-    if (!associateFound) {
-      return null;
-    }
-
-    return this.mapEntityToDto(associateFound);
   }
 
   async findById(id: string): Promise<AssociateDto | null> {
@@ -131,6 +135,20 @@ export class AssociatesService {
     }
 
     await this.associateRepository.update(id, this.mapDtoToEntity(associate));
+  }
+
+  async findByAssociationRecord(
+    associationRecord: string,
+  ): Promise<AssociateDto | null> {
+    const associateFound = await this.associateRepository.findOne({
+      where: { associationRecord },
+    });
+
+    if (!associateFound) {
+      return null;
+    }
+
+    return this.mapEntityToDto(associateFound);
   }
 
   private mapEntityToDto(associateEntity: AssociateEntity): AssociateDto {

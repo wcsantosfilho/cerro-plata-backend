@@ -8,8 +8,10 @@ import {
   IsUUID,
   MaxLength,
   MinLength,
+  Min,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 
 export enum PaymentTypeEnum {
   COURSE = 'COURSE',
@@ -80,14 +82,45 @@ export class PaymentDto {
   updatedAt: Date;
 }
 
-export interface FindAllParameters {
+export class FindAllParameters {
+  @IsDateString()
+  @IsOptional()
   effectiveDate?: string;
+
+  @IsDateString()
+  @IsOptional()
   dueDate?: string;
+
+  @IsOptional()
+  @IsString()
   type?: string;
+
   // Pagination
-  page?: number | string;
-  limit?: number | string;
-  skip?: number | string;
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({}, { message: 'Page must be a number' })
+  @Min(0)
+  page?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({}, { message: 'Limit must be a number' })
+  @Min(0)
+  limit?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({}, { message: 'Skip must be a number' })
+  @Min(0)
+  skip?: number;
+
+  @IsOptional()
+  @IsString()
+  sortBy?: string;
+
+  @IsOptional()
+  @IsString()
+  sortOrder?: 'ASC' | 'DESC';
 }
 
 export class PaymentRouteParameters {
