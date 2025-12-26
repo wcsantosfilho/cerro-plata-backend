@@ -6,6 +6,7 @@ import { AppModule } from '../src/app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import * as cookieParser from 'cookie-parser';
 
 let cachedApp: any;
 
@@ -40,6 +41,8 @@ async function bootstrapServer() {
 
     console.log(`FRONT no index.ts: ${process.env.FRONTEND_ORIGIN}`);
     app.enableCors(corsOptions);
+    // parse cookies in serverless handler as done in src/main.ts
+    app.use(cookieParser() as any);
 
     app.setGlobalPrefix('api');
 

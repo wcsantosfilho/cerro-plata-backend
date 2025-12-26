@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   console.log(`Running certo-plata-backend on Vercel: ${process.env.NODE_ENV}`);
@@ -19,6 +20,10 @@ async function bootstrap() {
     allowedHeaders: 'Content-Type, Authorization, Accept',
     credentials: true,
   });
+
+  // parse cookies so we can read `req.cookies.refreshToken` in controllers
+
+  app.use(cookieParser() as any);
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle('Cerro Plata Backend API')
@@ -45,4 +50,5 @@ async function bootstrap() {
   );
   await app.listen(process.env.PORT ?? 3000);
 }
+// eslint-disable-next-line @typescript-eslint/no-floating-promises
 bootstrap();
