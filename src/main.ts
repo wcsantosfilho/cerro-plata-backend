@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { AuditInterceptor } from './audit-log/audit.interceptor';
 import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
@@ -13,6 +14,7 @@ async function bootstrap() {
   // are registered under the same /api path when deployed to Vercel.
   const globalPrefix = 'api';
   app.setGlobalPrefix(globalPrefix);
+  app.useGlobalInterceptors(app.get(AuditInterceptor));
 
   app.enableCors({
     origin: process.env.FRONTEND_ORIGIN ?? 'http://localhost:8080',

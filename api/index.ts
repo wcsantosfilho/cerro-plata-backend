@@ -7,6 +7,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
+import { AuditInterceptor } from '../src/audit-log/audit.interceptor';
 
 let cachedApp: any;
 
@@ -45,6 +46,7 @@ async function bootstrapServer() {
     app.use(cookieParser() as any);
 
     app.setGlobalPrefix('api');
+    app.useGlobalInterceptors(app.get(AuditInterceptor));
 
     const swaggerConfig = new DocumentBuilder()
       .setTitle('Cerro Plata API')
