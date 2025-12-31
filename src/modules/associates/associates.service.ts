@@ -40,7 +40,7 @@ export class AssociatesService {
     return this.mapEntityToDto(createdAssociate);
   }
 
-  async update(id: string, associate: AssociateDto): Promise<AssociateDto> {
+  async update(id: string, associate: AssociateDto) {
     const foundAssociate = await this.associateRepository.findOne({
       where: { id },
     });
@@ -65,8 +65,6 @@ export class AssociatesService {
     }
 
     await this.associateRepository.update(id, this.mapDtoToEntity(associate));
-
-    return null;
   }
 
   async findAll(

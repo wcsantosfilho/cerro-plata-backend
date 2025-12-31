@@ -25,9 +25,6 @@ export class AuditInterceptor implements NestInterceptor {
     const method = request?.method;
     const url = request?.url;
 
-    console.dir(request);
-    console.log(`AuditInterceptor: ${method} ${url}`);
-
     return next.handle().pipe(
       tap(async (responseBody) => {
         const action = this.getAction(method);
@@ -39,12 +36,15 @@ export class AuditInterceptor implements NestInterceptor {
           entityId:
             this.extractPartsFromUrl(url, 'entityId') ||
             responseBody?.id?.toString(),
+          dataBefore: request.body,
           dataAfter: responseBody,
           ipAddress: ip,
         };
-        await this.auditService.logAction({
-          ...logBody,
-        });
+        if (logBody.entity !== 'auth' && logBody.entityId !== 'refresh') {
+          await this.auditService.logAction({
+            ...logBody,
+          });
+        }
       }),
     );
   }
