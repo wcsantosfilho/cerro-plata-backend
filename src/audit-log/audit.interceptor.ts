@@ -25,18 +25,25 @@ export class AuditInterceptor implements NestInterceptor {
     const method = request?.method;
     const url = request?.url;
 
+    console.dir(request);
+    console.log(`AuditInterceptor: ${method} ${url}`);
+
     return next.handle().pipe(
       tap(async (responseBody) => {
         const action = this.getAction(method);
         if (!action) return;
-
-        await this.auditService.logAction({
-          userId: user?.id ?? 'anonymous',
+        const logBody = {
+          userId: user?.sub ?? 'anonymous',
           action,
-          entity: this.extractEntityFromUrl(url),
-          entityId: responseBody?.id?.toString(),
+          entity: this.extractPartsFromUrl(url, 'entity') || 'unknown',
+          entityId:
+            this.extractPartsFromUrl(url, 'entityId') ||
+            responseBody?.id?.toString(),
           dataAfter: responseBody,
           ipAddress: ip,
+        };
+        await this.auditService.logAction({
+          ...logBody,
         });
       }),
     );
@@ -56,8 +63,22 @@ export class AuditInterceptor implements NestInterceptor {
     }
   }
 
-  private extractEntityFromUrl(url: string): string {
+  private extractPartsFromUrl(url: string, part: string): any {
     // Ex: /api/payments → payments
-    return url.split('/').filter(Boolean).pop() || 'unknown';
+    // const regexp = new RegExp(/((\/.+\/)(.+)\/(.*)/); // Ex: /api/payments/123 → payments | /api/payments → payments
+    const regexp = new RegExp(/^\/api(?:\/([^/]+))(?:\/([^/]+))?$/); // Ex: /api/payments/123 → payments | /api/payments → payments
+    const match = regexp.exec(url) || [];
+    if (match.length >= 1) {
+      switch (part) {
+        case 'entity':
+          return match[1];
+        case 'entityId':
+          return match[2];
+        default:
+          return match[1];
+      }
+    } else {
+      return null;
+    }
   }
 }

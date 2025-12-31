@@ -40,6 +40,35 @@ export class AssociatesService {
     return this.mapEntityToDto(createdAssociate);
   }
 
+  async update(id: string, associate: AssociateDto): Promise<AssociateDto> {
+    const foundAssociate = await this.associateRepository.findOne({
+      where: { id },
+    });
+
+    if (!foundAssociate) {
+      throw new HttpException(
+        `Associate with id: ${id} not found`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    if (associate.associationRecord !== foundAssociate.associationRecord) {
+      const existingAssociate = await this.findByAssociationRecord(
+        associate.associationRecord,
+      );
+      if (existingAssociate) {
+        throw new HttpException(
+          `Associate with associationRecord: ${associate.associationRecord} already exists`,
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+    }
+
+    await this.associateRepository.update(id, this.mapDtoToEntity(associate));
+
+    return null;
+  }
+
   async findAll(
     queryParams: FindAllParameters,
   ): Promise<{ items: AssociateDto[]; total: number }> {
@@ -108,33 +137,6 @@ export class AssociatesService {
     }
 
     return this.mapEntityToDto(associateFound);
-  }
-
-  async update(id: string, associate: AssociateDto) {
-    const foundAssociate = await this.associateRepository.findOne({
-      where: { id },
-    });
-
-    if (!foundAssociate) {
-      throw new HttpException(
-        `Associate with id: ${id} not found`,
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-
-    if (associate.associationRecord !== foundAssociate.associationRecord) {
-      const existingAssociate = await this.findByAssociationRecord(
-        associate.associationRecord,
-      );
-      if (existingAssociate) {
-        throw new HttpException(
-          `Associate with associationRecord: ${associate.associationRecord} already exists`,
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-    }
-
-    await this.associateRepository.update(id, this.mapDtoToEntity(associate));
   }
 
   async findByAssociationRecord(
