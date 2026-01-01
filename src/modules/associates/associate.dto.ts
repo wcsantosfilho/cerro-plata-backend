@@ -75,8 +75,8 @@ export class AssociateDto {
     example: '+5512988775544',
   })
   @IsString()
-  @IsPhoneNumber()
   @ToPhone()
+  @IsPhoneNumber()
   @IsOptional()
   phoneNumber: string;
 

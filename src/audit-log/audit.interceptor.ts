@@ -40,11 +40,9 @@ export class AuditInterceptor implements NestInterceptor {
           dataAfter: responseBody,
           ipAddress: ip,
         };
-        if (logBody.entity !== 'auth' && logBody.entityId !== 'refresh') {
-          await this.auditService.logAction({
-            ...logBody,
-          });
-        }
+        await this.auditService.logAction({
+          ...logBody,
+        });
       }),
     );
   }

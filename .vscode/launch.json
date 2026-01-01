@@ -9,6 +9,11 @@
             "type": "node",
             "request": "launch",
             "name": "Debug NestJS Framework",
+            // Set to the full path of your Node.js binary if VS Code can't find `node`
+            // Common paths:
+            // - Intel Homebrew or manual install: /usr/local/bin/node
+            // - Apple Silicon Homebrew: /opt/homebrew/bin/node
+            "runtimeExecutable": "/Users/wcsantosfilho/.nvm/versions/node/v22.13.1/bin/node",
             "args": ["${workspaceFolder}/src/main.ts"],
             "runtimeArgs": ["-r", "ts-node/register", "-r", "tsconfig-paths/register"],
             "console": "integratedTerminal",
