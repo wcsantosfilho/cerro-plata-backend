@@ -51,9 +51,6 @@ export class AuthService {
     );
 
     const expiresAt = new Date(Date.now() + this.refreshTokenExpiry);
-    console.log(
-      `Refresh token expires at:, ${expiresAt.toUTCString()} | ${this.configService.get('REFRESH_TOKEN_EXPIRATION_TIME')}`,
-    );
     const refreshEntity = this.refreshTokenRepository.create({
       tokenHash,
       expiresAt,
