@@ -1,16 +1,23 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 // Dismiss: "We recommend installing an extension to run jest tests."
 import { HttpException } from '@nestjs/common';
 import { AssociateEntity } from '../../db/entities/associate.entity';
 import { AssociatesService } from '../associates/associates.service';
 import { AssociateDto } from './associate.dto';
+import { FoundersAssociatesList, AssociatesList } from './associate.mock';
 
-describe('AssociatesService - create', () => {
+describe('AssociatesService', () => {
   let service: AssociatesService;
   let mockRepo: {
     findOne: jest.Mock;
+    findAll: jest.Mock;
     create: jest.Mock;
     save: jest.Mock;
+    createQueryBuilder: jest.Mock;
+    query: jest.Mock;
+    orderBy: jest.Mock;
   };
 
   const createDto = {
@@ -32,8 +39,12 @@ describe('AssociatesService - create', () => {
   beforeEach(() => {
     mockRepo = {
       findOne: jest.fn(),
+      findAll: jest.fn(),
       create: jest.fn(),
       save: jest.fn(),
+      createQueryBuilder: jest.fn(),
+      query: jest.fn(),
+      orderBy: jest.fn().mockReturnThis(),
     };
     service = new AssociatesService(mockRepo as any);
   });
@@ -96,5 +107,87 @@ describe('AssociatesService - create', () => {
     await expect(
       service.create(createSecondDto as AssociateDto),
     ).rejects.toThrow(expectedErrorMessage);
+  });
+
+  it('should filter associates without args', async () => {
+    const mockQuery = {
+      andWhere: jest.fn().mockReturnThis(),
+      orderBy: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
+      offset: jest.fn().mockReturnThis(),
+      getManyAndCount: jest
+        .fn()
+        .mockResolvedValue([AssociatesList.items, AssociatesList.total]),
+    } as any;
+
+    mockRepo.createQueryBuilder.mockReturnValue(mockQuery);
+
+    const result = await service.findAll({}); // No filters applied
+
+    expect(mockRepo.createQueryBuilder).toHaveBeenCalledWith('associate');
+    expect(mockQuery.orderBy).toHaveBeenCalledWith(
+      'associate.createdAt',
+      'DESC',
+    );
+    expect(result).toEqual({
+      items: AssociatesList.items.map((e) => ({
+        id: e.id,
+        associationRecord: e.associationRecord,
+        name: e.name,
+        phoneNumber: e.phoneNumber,
+        address: e.address,
+        type: e.type,
+        createdAt: e.createdAt,
+        updatedAt: e.updatedAt,
+      })),
+      total: 26,
+    });
+  });
+
+  it('should filter associates by type = FOUNDER and order by NAME ASC', async () => {
+    const mockQuery = {
+      andWhere: jest.fn().mockReturnThis(),
+      orderBy: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
+      offset: jest.fn().mockReturnThis(),
+      getManyAndCount: jest
+        .fn()
+        .mockResolvedValue([
+          FoundersAssociatesList.items,
+          FoundersAssociatesList.total,
+        ]),
+    } as any;
+
+    mockRepo.createQueryBuilder.mockReturnValue(mockQuery);
+    // Mock repository metadata so sorting field validation passes
+    (mockRepo as any).metadata = {
+      columns: [{ propertyName: 'name' }, { propertyName: 'createdAt' }],
+    } as any;
+
+    const result = await service.findAll({
+      type: 'FOUNDER',
+      sortBy: 'name',
+      sortOrder: 'ASC',
+    });
+
+    expect(mockRepo.createQueryBuilder).toHaveBeenCalledWith('associate');
+    expect(mockQuery.andWhere).toHaveBeenCalledWith('associate.type = :type', {
+      type: 'FOUNDER',
+    });
+    expect(mockQuery.orderBy).toHaveBeenCalledWith('associate.name', 'ASC');
+    expect(result).toEqual({
+      items: FoundersAssociatesList.items.map((e) => ({
+        id: e.id,
+        associationRecord: e.associationRecord,
+        name: e.name,
+        phoneNumber: e.phoneNumber,
+        address: e.address,
+        type: e.type,
+        createdAt: e.createdAt,
+        updatedAt: e.updatedAt,
+      })),
+      total: FoundersAssociatesList.total,
+    });
+    expect(result.items.length).toBe(2);
   });
 });
