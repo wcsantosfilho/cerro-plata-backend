@@ -6,6 +6,9 @@ import {
   AssociateDto,
   AssociateTypeEnum,
   FindAllParameters,
+  PaymentPlanEnum,
+  AssociateCategoryEnum,
+  BloodTypeEnum,
 } from './associate.dto';
 
 @Injectable()
@@ -17,22 +20,50 @@ export class AssociatesService {
 
   async create(associate: AssociateDto): Promise<AssociateDto> {
     const typeKey = associate.type as keyof typeof AssociateTypeEnum;
+    const categoryKey =
+      associate.category as keyof typeof AssociateCategoryEnum;
+    const paymentPlanKey =
+      associate.paymentPlan as keyof typeof PaymentPlanEnum;
+    const bloodKey = associate.bloodType as keyof typeof BloodTypeEnum;
+
     const associateToSave: Partial<AssociateEntity> = {
       associationRecord: associate.associationRecord,
+      cpf: associate.cpf,
       name: associate.name,
       phoneNumber: associate.phoneNumber,
+      emergencyPhoneNumber: associate.emergencyPhoneNumber,
       address: associate.address,
       type: AssociateTypeEnum[typeKey],
+      category: AssociateCategoryEnum[categoryKey],
+      paymentPlan: PaymentPlanEnum[paymentPlanKey],
+      bloodType: BloodTypeEnum[bloodKey],
+      birthDate: associate.birthDate,
+      associationDate: associate.associationDate,
+      fepamRegistrationNumber: associate.fepamRegistrationNumber,
+      fepamDueDate: associate.fepamDueDate,
     };
 
-    const existingAssociate = await this.findByAssociationRecord(
-      associate.associationRecord,
-    );
-    if (existingAssociate) {
-      throw new HttpException(
-        `Associate with associationRecord: ${associate.associationRecord} already exists`,
-        HttpStatus.BAD_REQUEST,
+    // Regra de Negócio: Se o associationRecord for fornecido, verificar se já existe
+    if (
+      associateToSave.associationRecord != undefined &&
+      typeof associateToSave.associationRecord === 'string'
+    ) {
+      const existingAssociate = await this.findByAssociationRecord(
+        associateToSave.associationRecord,
       );
+      if (existingAssociate) {
+        throw new HttpException(
+          `Associate with associationRecord: ${associateToSave.associationRecord} already exists`,
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+    } else {
+      // Regra de Negócio: Se o associationRecord não for fornecido, adicionar um ao último existente
+      const lastAssociateRecord = await this.findLastAssociationRecord();
+      const newAssociateRecord = lastAssociateRecord
+        ? (parseInt(lastAssociateRecord) + 1).toString()
+        : '1';
+      associateToSave.associationRecord = newAssociateRecord;
     }
 
     const createdAssociate =
@@ -52,7 +83,11 @@ export class AssociatesService {
       );
     }
 
-    if (associate.associationRecord !== foundAssociate.associationRecord) {
+    // Regra de Negócio: Verificar duplicidade de associationRecord se for alterado
+    if (
+      associate.associationRecord &&
+      associate.associationRecord !== foundAssociate.associationRecord
+    ) {
       const existingAssociate = await this.findByAssociationRecord(
         associate.associationRecord,
       );
@@ -151,15 +186,41 @@ export class AssociatesService {
     return this.mapEntityToDto(associateFound);
   }
 
+  async findLastAssociationRecord(): Promise<string | null> {
+    const associateFound = await this.associateRepository.findOne({
+      where: {},
+      order: {
+        associationRecord: 'DESC',
+      },
+    });
+
+    const lastValue = associateFound ? associateFound.associationRecord : null;
+    return lastValue;
+  }
+
   private mapEntityToDto(associateEntity: AssociateEntity): AssociateDto {
     const typeKey = associateEntity.type as keyof typeof AssociateTypeEnum;
+    const categoryKey =
+      associateEntity.category as keyof typeof AssociateCategoryEnum;
+    const paymentPlanKey =
+      associateEntity.paymentPlan as keyof typeof PaymentPlanEnum;
+    const bloodKey = associateEntity.bloodType as keyof typeof BloodTypeEnum;
     return {
       id: associateEntity.id,
       associationRecord: associateEntity.associationRecord,
+      cpf: associateEntity.cpf,
       name: associateEntity.name,
       phoneNumber: associateEntity.phoneNumber,
+      emergencyPhoneNumber: associateEntity.emergencyPhoneNumber,
       address: associateEntity.address,
       type: AssociateTypeEnum[typeKey],
+      category: AssociateCategoryEnum[categoryKey],
+      paymentPlan: PaymentPlanEnum[paymentPlanKey],
+      bloodType: BloodTypeEnum[bloodKey],
+      birthDate: associateEntity.birthDate,
+      associationDate: associateEntity.associationDate,
+      fepamRegistrationNumber: associateEntity.fepamRegistrationNumber,
+      fepamDueDate: associateEntity.fepamDueDate,
       createdAt: associateEntity.createdAt,
       updatedAt: associateEntity.updatedAt,
     };
@@ -169,10 +230,19 @@ export class AssociatesService {
     return {
       id: associateDto.id,
       associationRecord: associateDto.associationRecord,
+      cpf: associateDto.cpf,
       name: associateDto.name,
       phoneNumber: associateDto.phoneNumber,
+      emergencyPhoneNumber: associateDto.emergencyPhoneNumber,
       address: associateDto.address,
       type: associateDto.type.toString(),
+      category: associateDto.category.toString(),
+      paymentPlan: associateDto.paymentPlan.toString(),
+      bloodType: associateDto.bloodType.toString(),
+      birthDate: associateDto.birthDate,
+      associationDate: associateDto.associationDate,
+      fepamRegistrationNumber: associateDto.fepamRegistrationNumber,
+      fepamDueDate: associateDto.fepamDueDate,
     };
   }
 }

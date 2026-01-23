@@ -40,17 +40,44 @@ export class AssociateEntity {
   @Column({ type: 'varchar', name: 'association_record' })
   associationRecord: string;
 
+  @Column({ type: 'varchar', name: 'cpf' })
+  cpf: string;
+
   @Column({ type: 'varchar' })
   name: string;
 
   @Column({ type: 'varchar', name: 'phone_number' })
   phoneNumber: string;
 
+  @Column({ type: 'varchar', name: 'emergency_phone_number' })
+  emergencyPhoneNumber: string;
+
   @Column(() => Address, { prefix: '' })
   address: Address;
 
   @Column({ type: 'varchar' })
   type: string;
+
+  @Column({ type: 'varchar' })
+  category: string;
+
+  @Column({ type: 'varchar', name: 'payment_plan' })
+  paymentPlan: string;
+
+  @Column({ type: 'varchar', name: 'blood_type' })
+  bloodType: string;
+
+  @Column({ type: 'date', name: 'birth_date' })
+  birthDate: Date;
+
+  @Column({ type: 'date', name: 'association_date' })
+  associationDate: Date;
+
+  @Column({ type: 'varchar', name: 'fepam_registration_number' })
+  fepamRegistrationNumber: string;
+
+  @Column({ type: 'date', name: 'fepam_due_date' })
+  fepamDueDate: Date;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

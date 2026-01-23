@@ -1,11 +1,13 @@
 import {
   IsDateString,
   IsEnum,
+  IsISO8601,
   IsObject,
   IsPhoneNumber,
   IsOptional,
   IsString,
   IsUUID,
+  Length,
   MaxLength,
   MinLength,
   Min,
@@ -17,9 +19,36 @@ import { ToPhone } from '../../common/decorators/to-phone.decorator';
 import { Type } from 'class-transformer';
 
 export enum AssociateTypeEnum {
-  REGULAR = 'REGULAR',
   FOUNDER = 'FOUNDER',
   REDEEMED = 'REDEEMED',
+  BENEMERIT = 'BENEMERIT',
+  HONORARY = 'HONORARY',
+  SENIOR = 'SENIOR',
+  CONTRIBUTING = 'CONTRIBUTING',
+  COLABORATOR = 'COLABORATOR',
+}
+
+export enum AssociateCategoryEnum {
+  INDIVIDUAL = 'INDIVIDUAL',
+  FAMILY = 'FAMILY',
+}
+
+export enum PaymentPlanEnum {
+  MONTHLY = 'MONTHLY',
+  QUARTERLY = 'QUARTERLY',
+  SEMIANNUAL = 'SEMIANNUAL',
+  ANNUAL = 'ANNUAL',
+}
+
+export enum BloodTypeEnum {
+  O_POS = 'O_POS',
+  O_NEG = 'O_NEG',
+  A_POS = 'A_POS',
+  A_NEG = 'A_NEG',
+  B_POS = 'B_POS',
+  B_NEG = 'B_NEG',
+  AB_POS = 'AB_POS',
+  AB_NEG = 'AB_NEG',
 }
 
 class AddressDto {
@@ -51,13 +80,24 @@ export class AssociateDto {
   @IsOptional()
   id?: string;
 
-  @ApiProperty({
-    required: true,
+  @ApiPropertyOptional({
+    required: false,
     description: 'Association Record',
     example: '1014',
   })
   @IsString()
+  @IsOptional()
   associationRecord: string;
+
+  @ApiPropertyOptional({
+    required: false,
+    description: 'CPF',
+    example: '12345678909',
+  })
+  @IsString()
+  @IsOptional()
+  @Length(11)
+  cpf: string; // campo novo
 
   @ApiProperty({
     required: true,
@@ -82,6 +122,17 @@ export class AssociateDto {
 
   @ApiPropertyOptional({
     required: false,
+    description: 'Emergency phone number',
+    example: '+5512988775544',
+  })
+  @IsString()
+  @ToPhone()
+  @IsPhoneNumber()
+  @IsOptional()
+  emergencyPhoneNumber: string; // campo novo
+
+  @ApiPropertyOptional({
+    required: false,
     description: 'Address of the associate',
     example: {
       zipCode: '12345-678',
@@ -102,11 +153,74 @@ export class AssociateDto {
   @ApiProperty({
     required: true,
     description: 'Type of the associate',
-    example: 'REGULAR',
+    example: 'REDEEMED',
     enum: AssociateTypeEnum,
   })
   @IsEnum(AssociateTypeEnum)
   type: string;
+
+  @ApiProperty({
+    required: true,
+    description: 'Category of association',
+    example: 'INDIVIDUAL',
+    enum: AssociateCategoryEnum,
+  })
+  @IsEnum(AssociateCategoryEnum)
+  category: string; // campo novo
+
+  @ApiProperty({
+    required: true,
+    description: 'Payment plan of the associate',
+    example: 'MONTHLY',
+    enum: PaymentPlanEnum,
+  })
+  @IsEnum(PaymentPlanEnum)
+  paymentPlan: string; // campo novo
+
+  @ApiProperty({
+    required: true,
+    description: 'Blood type of the associate',
+    example: 'O_POS',
+    enum: BloodTypeEnum,
+  })
+  @IsEnum(BloodTypeEnum)
+  bloodType: string; // campo novo
+
+  @ApiProperty({
+    required: true,
+    description: 'Associate birth date',
+    example: '14/02/1985',
+  })
+  @IsISO8601()
+  @IsOptional()
+  birthDate: Date; // campo novo
+
+  @ApiProperty({
+    required: true,
+    description: 'Association Date',
+    example: '14/02/1985',
+  })
+  @IsISO8601()
+  @IsOptional()
+  associationDate: Date; // campo novo
+
+  @ApiPropertyOptional({
+    required: false,
+    description: 'FEPAM Registration Number',
+    example: 'FP11014',
+  })
+  @IsString()
+  @IsOptional()
+  fepamRegistrationNumber: string; // campo novo
+
+  @ApiPropertyOptional({
+    required: false,
+    description: 'FEPAM Association Due Date',
+    example: '14/02/2025',
+  })
+  @IsISO8601()
+  @IsOptional()
+  fepamDueDate: Date; // campo novo
 
   @IsDateString()
   @IsOptional()
