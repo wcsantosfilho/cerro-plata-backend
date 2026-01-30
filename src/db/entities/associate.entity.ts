@@ -52,6 +52,9 @@ export class AssociateEntity {
   @Column({ type: 'varchar', name: 'emergency_phone_number' })
   emergencyPhoneNumber: string;
 
+  @Column({ type: 'varchar', name: 'email' })
+  email: string;
+
   @Column(() => Address, { prefix: '' })
   address: Address;
 

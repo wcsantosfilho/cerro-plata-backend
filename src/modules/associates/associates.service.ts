@@ -10,6 +10,7 @@ import {
   AssociateCategoryEnum,
   BloodTypeEnum,
 } from './associate.dto';
+import { validateCPF } from '../../common/validatecpf';
 
 @Injectable()
 export class AssociatesService {
@@ -66,6 +67,30 @@ export class AssociatesService {
       associateToSave.associationRecord = newAssociateRecord;
     }
 
+    // Regra de Negócio: Se o CPF for fornecido, verificar se já existe e se é valido
+    if (
+      associateToSave.cpf != undefined &&
+      typeof associateToSave.cpf === 'string'
+    ) {
+      // É válido?
+      const isValid = validateCPF(associateToSave.cpf);
+      if (!isValid) {
+        throw new HttpException(
+          `CPF: ${associateToSave.cpf} is not valid`,
+          HttpStatus.UNPROCESSABLE_ENTITY,
+        );
+      }
+
+      // Já existe?
+      const existingAssociate = await this.findByCPF(associateToSave.cpf);
+      if (existingAssociate) {
+        throw new HttpException(
+          `Associate with CPF: ${associateToSave.cpf} already exists`,
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+    }
+
     const createdAssociate =
       await this.associateRepository.save(associateToSave);
     return this.mapEntityToDto(createdAssociate);
@@ -94,6 +119,28 @@ export class AssociatesService {
       if (existingAssociate) {
         throw new HttpException(
           `Associate with associationRecord: ${associate.associationRecord} already exists`,
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+    }
+
+    // É válido?
+    if (associate.cpf) {
+      const isValid = validateCPF(associate.cpf);
+      if (!isValid) {
+        throw new HttpException(
+          `CPF: ${associate.cpf} is not valid`,
+          HttpStatus.UNPROCESSABLE_ENTITY,
+        );
+      }
+    }
+
+    // Regra de Negócio: Verificar duplicidade de CPF se for alterado
+    if (associate.cpf && associate.cpf !== foundAssociate.cpf) {
+      const existingAssociate = await this.findByCPF(associate.cpf);
+      if (existingAssociate) {
+        throw new HttpException(
+          `Associate with CPF: ${associate.cpf} already exists`,
           HttpStatus.BAD_REQUEST,
         );
       }
@@ -186,6 +233,18 @@ export class AssociatesService {
     return this.mapEntityToDto(associateFound);
   }
 
+  async findByCPF(cpf: string): Promise<AssociateDto | null> {
+    const associateFound = await this.associateRepository.findOne({
+      where: { cpf },
+    });
+
+    if (!associateFound) {
+      return null;
+    }
+
+    return this.mapEntityToDto(associateFound);
+  }
+
   async findLastAssociationRecord(): Promise<string | null> {
     const associateFound = await this.associateRepository.findOne({
       where: {},
@@ -212,6 +271,7 @@ export class AssociatesService {
       name: associateEntity.name,
       phoneNumber: associateEntity.phoneNumber,
       emergencyPhoneNumber: associateEntity.emergencyPhoneNumber,
+      email: associateEntity.email,
       address: associateEntity.address,
       type: AssociateTypeEnum[typeKey],
       category: AssociateCategoryEnum[categoryKey],
@@ -234,6 +294,7 @@ export class AssociatesService {
       name: associateDto.name,
       phoneNumber: associateDto.phoneNumber,
       emergencyPhoneNumber: associateDto.emergencyPhoneNumber,
+      email: associateDto.email,
       address: associateDto.address,
       type: associateDto.type.toString(),
       category: associateDto.category.toString(),

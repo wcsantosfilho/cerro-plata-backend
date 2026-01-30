@@ -13,6 +13,7 @@ import {
   Min,
   ValidateNested,
   IsNumber,
+  IsEmail,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ToPhone } from '../../common/decorators/to-phone.decorator';
@@ -97,7 +98,7 @@ export class AssociateDto {
   @IsString()
   @IsOptional()
   @Length(11)
-  cpf: string; // campo novo
+  cpf: string;
 
   @ApiProperty({
     required: true,
@@ -129,7 +130,17 @@ export class AssociateDto {
   @ToPhone()
   @IsPhoneNumber()
   @IsOptional()
-  emergencyPhoneNumber: string; // campo novo
+  emergencyPhoneNumber: string;
+
+  @ApiPropertyOptional({
+    required: false,
+    description: 'email address of the associate',
+    example: 'margie@example.com',
+  })
+  @IsString()
+  @IsEmail()
+  @IsOptional()
+  email: string;
 
   @ApiPropertyOptional({
     required: false,
@@ -166,43 +177,43 @@ export class AssociateDto {
     enum: AssociateCategoryEnum,
   })
   @IsEnum(AssociateCategoryEnum)
-  category: string; // campo novo
+  category: string;
 
-  @ApiProperty({
-    required: true,
+  @ApiPropertyOptional({
+    required: false,
     description: 'Payment plan of the associate',
     example: 'MONTHLY',
     enum: PaymentPlanEnum,
   })
   @IsEnum(PaymentPlanEnum)
-  paymentPlan: string; // campo novo
+  paymentPlan: string;
 
-  @ApiProperty({
-    required: true,
+  @ApiPropertyOptional({
+    required: false,
     description: 'Blood type of the associate',
     example: 'O_POS',
     enum: BloodTypeEnum,
   })
   @IsEnum(BloodTypeEnum)
-  bloodType: string; // campo novo
+  bloodType: string;
 
-  @ApiProperty({
-    required: true,
+  @ApiPropertyOptional({
+    required: false,
     description: 'Associate birth date',
     example: '14/02/1985',
   })
   @IsISO8601()
   @IsOptional()
-  birthDate: Date; // campo novo
+  birthDate: Date;
 
-  @ApiProperty({
-    required: true,
+  @ApiPropertyOptional({
+    required: false,
     description: 'Association Date',
     example: '14/02/1985',
   })
   @IsISO8601()
   @IsOptional()
-  associationDate: Date; // campo novo
+  associationDate: Date;
 
   @ApiPropertyOptional({
     required: false,
@@ -211,7 +222,7 @@ export class AssociateDto {
   })
   @IsString()
   @IsOptional()
-  fepamRegistrationNumber: string; // campo novo
+  fepamRegistrationNumber: string;
 
   @ApiPropertyOptional({
     required: false,
@@ -220,7 +231,7 @@ export class AssociateDto {
   })
   @IsISO8601()
   @IsOptional()
-  fepamDueDate: Date; // campo novo
+  fepamDueDate: Date;
 
   @IsDateString()
   @IsOptional()
