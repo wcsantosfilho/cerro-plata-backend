@@ -10,6 +10,7 @@ import { DbModule } from './db/db.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { UsersModule } from './modules/users/users.module';
 import { AuditLogModule } from './audit-log/audit-log.module';
+import { OrganizationsModule } from './modules/organizations/organizations.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { AuditLogModule } from './audit-log/audit-log.module';
     AssociatesModule,
     PaymentsModule,
     AuditLogModule,
+    OrganizationsModule,
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'public'),
     }),

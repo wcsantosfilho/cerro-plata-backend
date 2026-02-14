@@ -1,0 +1,34 @@
+import { Injectable } from '@nestjs/common';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { OrganizationEntity } from '../../db/entities/organization.entity';
+import { OrganizationDto } from './organization.dto';
+
+@Injectable()
+export class OrganizationsService {
+  constructor(
+    @InjectRepository(OrganizationEntity)
+    private readonly organizationRepository: Repository<OrganizationEntity>,
+  ) {}
+
+  async create(organization: OrganizationEntity): Promise<OrganizationEntity> {
+    const organizationToSave: Partial<OrganizationEntity> = {
+      organization_name: organization.organization_name,
+    };
+
+    const createdOrganization =
+      await this.organizationRepository.save(organizationToSave);
+    return this.mapEntityToDto(createdOrganization);
+  }
+
+  private mapEntityToDto(
+    organizationEntity: OrganizationEntity,
+  ): OrganizationDto {
+    return {
+      id: organizationEntity.id,
+      organization_name: organizationEntity.organization_name,
+      createdAt: organizationEntity.createdAt,
+      updatedAt: organizationEntity.updatedAt,
+    };
+  }
+}
