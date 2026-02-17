@@ -26,10 +26,9 @@ export class PaymentsService {
 
     let associate = null;
     if (payment.associateId) {
-      associate = await this.associatesService.findById(payment.associateId);
-      if (!associate) {
-        throw new Error(`Associate with id ${payment.associateId} not found`);
-      }
+      associate = await this.associatesService.findAssociateByIdOrFail(
+        payment.associateId,
+      );
     }
     const typeKey = payment.type as keyof typeof PaymentTypeEnum;
     const paymentToSave: Partial<PaymentEntity> = {

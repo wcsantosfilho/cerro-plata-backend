@@ -5,9 +5,12 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   OneToMany,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 
 import { PaymentEntity } from './payment.entity';
+import { OrganizationEntity } from './organization.entity';
 
 class Address {
   @Column({ name: 'zip_code' })
@@ -87,6 +90,17 @@ export class AssociateEntity {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
+
+  @ManyToOne(
+    () => OrganizationEntity,
+    (organization) => organization.associates,
+    {
+      onDelete: 'SET NULL',
+      nullable: false,
+    },
+  )
+  @JoinColumn({ name: 'organization_id' })
+  organization: OrganizationEntity;
 
   @OneToMany(() => PaymentEntity, (payment) => payment.associate)
   payments?: PaymentEntity[];

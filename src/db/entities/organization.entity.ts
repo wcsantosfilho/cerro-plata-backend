@@ -2,9 +2,11 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { AssociateEntity } from './associate.entity';
 
 @Entity({ name: 'organizations' })
 export class OrganizationEntity {
@@ -19,4 +21,7 @@ export class OrganizationEntity {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
+
+  @OneToMany(() => AssociateEntity, (associate) => associate.organization)
+  associates?: AssociateEntity[];
 }

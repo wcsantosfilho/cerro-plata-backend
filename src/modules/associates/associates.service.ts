@@ -257,6 +257,21 @@ export class AssociatesService {
     return lastValue;
   }
 
+  async findAssociateByIdOrFail(id: string): Promise<AssociateEntity> {
+    const associateFound = await this.associateRepository.findOne({
+      where: { id },
+    });
+
+    if (!associateFound) {
+      throw new HttpException(
+        `Associate with id: ${id} not found`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    return associateFound;
+  }
+
   private mapEntityToDto(associateEntity: AssociateEntity): AssociateDto {
     const typeKey = associateEntity.type as keyof typeof AssociateTypeEnum;
     const categoryKey =
@@ -266,6 +281,7 @@ export class AssociatesService {
     const bloodKey = associateEntity.bloodType as keyof typeof BloodTypeEnum;
     return {
       id: associateEntity.id,
+      organizationId: associateEntity.organization.id,
       associationRecord: associateEntity.associationRecord,
       cpf: associateEntity.cpf,
       name: associateEntity.name,
