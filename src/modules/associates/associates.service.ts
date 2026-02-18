@@ -2,6 +2,7 @@ import { Injectable, HttpStatus, HttpException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AssociateEntity } from '../../db/entities/associate.entity';
+import { OrganizationsService } from '../organizations/organizations.service';
 import {
   AssociateDto,
   AssociateTypeEnum,
@@ -17,6 +18,7 @@ export class AssociatesService {
   constructor(
     @InjectRepository(AssociateEntity)
     private readonly associateRepository: Repository<AssociateEntity>,
+    private readonly organizationsService: OrganizationsService,
   ) {}
 
   async create(associate: AssociateDto): Promise<AssociateDto> {
@@ -27,8 +29,16 @@ export class AssociatesService {
       associate.paymentPlan as keyof typeof PaymentPlanEnum;
     const bloodKey = associate.bloodType as keyof typeof BloodTypeEnum;
 
+    let organization;
+    if (associate.organizationId) {
+      organization = await this.organizationsService.findOrganizationByIdOrFail(
+        associate.organizationId,
+      );
+    }
+
     const associateToSave: Partial<AssociateEntity> = {
       associationRecord: associate.associationRecord,
+      organization: organization,
       cpf: associate.cpf,
       name: associate.name,
       phoneNumber: associate.phoneNumber,

@@ -22,6 +22,7 @@ describe('AssociatesService', () => {
 
   const createDto = {
     associationRecord: '138',
+    organizationId: '0668342c-0e50-4dee-a022-899e5fb0b1f1',
     name: 'Gustavo Williamson',
     phoneNumber: '+5541987601925',
     address: {

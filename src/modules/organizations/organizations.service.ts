@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { OrganizationEntity } from '../../db/entities/organization.entity';
@@ -19,6 +19,19 @@ export class OrganizationsService {
     const createdOrganization =
       await this.organizationRepository.save(organizationToSave);
     return this.mapEntityToDto(createdOrganization);
+  }
+
+  async findOrganizationByIdOrFail(id: string): Promise<OrganizationEntity> {
+    const organization = await this.organizationRepository.findOne({
+      where: { id },
+    });
+    if (!organization) {
+      throw new HttpException(
+        `Associate with id: ${id} not found`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    return organization;
   }
 
   private mapEntityToDto(

@@ -96,7 +96,7 @@ export class AssociateEntity {
     (organization) => organization.associates,
     {
       onDelete: 'SET NULL',
-      nullable: false,
+      nullable: true,
     },
   )
   @JoinColumn({ name: 'organization_id' })

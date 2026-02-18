@@ -106,6 +106,7 @@ export class AssociateDto {
   @IsString()
   @IsOptional()
   @Length(11)
+  @MaxLength(11)
   cpf: string;
 
   @ApiProperty({

@@ -5,8 +5,11 @@ export class AssociateTable1771061222988 implements MigrationInterface {
     await queryRunner.query(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp";`);
     await queryRunner.query(`
             ALTER TABLE associates
-                ADD COLUMN organization_id uuid NOT NULL,
-                CONSTRAINT associate_fk_organization FOREIGN KEY (organization_id)
+                ADD COLUMN organization_id uuid
+        `);
+    await queryRunner.query(`
+            ALTER TABLE associates
+                ADD CONSTRAINT associate_fk_organization FOREIGN KEY (organization_id)
                 REFERENCES organizations(id)
                 ON DELETE SET NULL
         `);

@@ -8,5 +8,6 @@ import { OrganizationEntity } from '../../db/entities/organization.entity';
   controllers: [OrganizationsController],
   imports: [TypeOrmModule.forFeature([OrganizationEntity])],
   providers: [OrganizationsService],
+  exports: [OrganizationsService],
 })
 export class OrganizationsModule {}
