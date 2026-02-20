@@ -39,7 +39,11 @@ export class AuthService {
       throw new UnauthorizedException();
     }
 
-    const payload = { sub: foundUser.id, username: foundUser.username };
+    const payload = {
+      sub: foundUser.id,
+      username: foundUser.username,
+      tenant: foundUser.organizationId,
+    };
 
     const token = this.jwtService.sign(payload, {
       expiresIn: this.accessTokenExpirySeconds, // número = segundos
@@ -118,7 +122,11 @@ export class AuthService {
     });
     const saved = await this.refreshTokenRepository.save(newEntity);
 
-    const payload = { sub: stored.user.id, username: stored.user.username };
+    const payload = {
+      sub: stored.user.id,
+      username: stored.user.username,
+      tenant: stored.user.organizationId,
+    };
     const token = this.jwtService.sign(payload, {
       expiresIn: this.accessTokenExpirySeconds,
     });

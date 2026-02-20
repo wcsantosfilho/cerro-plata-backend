@@ -1,4 +1,10 @@
-import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUUID,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class UserDto {
@@ -33,4 +39,12 @@ export class UserDto {
   @IsNotEmpty()
   @IsString()
   password: string;
+
+  @ApiProperty({
+    required: false,
+    description: 'Organization ID to which the user is authorized to (tenant)',
+    example: '0d33af20-ded0-4e7c-b6bf-8879d480adc0',
+  })
+  @IsUUID()
+  organizationId?: string | null;
 }

@@ -20,6 +20,9 @@ export class UserEntity {
   @Column({ type: 'varchar', name: 'password_hash' })
   passwordHash: string;
 
+  @Column({ type: 'varchar', name: 'organization_id', nullable: true })
+  organizationId: string | null;
+
   @CreateDateColumn({ type: 'timestamptz', name: 'created_at' })
   createdAt: Date;
 

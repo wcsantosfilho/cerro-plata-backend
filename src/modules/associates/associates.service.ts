@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AssociateEntity } from '../../db/entities/associate.entity';
 import { OrganizationsService } from '../organizations/organizations.service';
+import { TenantContextService } from '../../common/tenant/tenant-context.service';
 import {
   AssociateDto,
   AssociateTypeEnum,
@@ -19,6 +20,7 @@ export class AssociatesService {
     @InjectRepository(AssociateEntity)
     private readonly associateRepository: Repository<AssociateEntity>,
     private readonly organizationsService: OrganizationsService,
+    private tenantContext: TenantContextService,
   ) {}
 
   async create(associate: AssociateDto): Promise<AssociateDto> {
@@ -160,9 +162,19 @@ export class AssociatesService {
   }
 
   async findAll(
+    tenantId: string,
     queryParams: FindAllParameters,
   ): Promise<{ items: AssociateDto[]; total: number }> {
-    const query = this.associateRepository.createQueryBuilder('associate');
+    const organizationId = tenantId;
+    const query = this.associateRepository
+      .createQueryBuilder('associate')
+      .innerJoinAndSelect('associate.organization', 'organization');
+
+    if (organizationId) {
+      query.andWhere('associate.organization_id = :organizationId', {
+        organizationId,
+      });
+    }
 
     if (queryParams?.name) {
       query.andWhere('associate.name ILIKE :name', {
@@ -217,6 +229,9 @@ export class AssociatesService {
   async findById(id: string): Promise<AssociateDto | null> {
     const associateFound = await this.associateRepository.findOne({
       where: { id },
+      relations: {
+        organization: true, // Join the 'organization' relation
+      },
     });
 
     if (!associateFound) {
@@ -234,6 +249,9 @@ export class AssociatesService {
   ): Promise<AssociateDto | null> {
     const associateFound = await this.associateRepository.findOne({
       where: { associationRecord },
+      relations: {
+        organization: true, // Join the 'organization' relation
+      },
     });
 
     if (!associateFound) {
@@ -246,6 +264,9 @@ export class AssociatesService {
   async findByCPF(cpf: string): Promise<AssociateDto | null> {
     const associateFound = await this.associateRepository.findOne({
       where: { cpf },
+      relations: {
+        organization: true, // Join the 'organization' relation
+      },
     });
 
     if (!associateFound) {
@@ -258,6 +279,9 @@ export class AssociatesService {
   async findLastAssociationRecord(): Promise<string | null> {
     const associateFound = await this.associateRepository.findOne({
       where: {},
+      relations: {
+        organization: true, // Join the 'organization' relation
+      },
       order: {
         associationRecord: 'DESC',
       },

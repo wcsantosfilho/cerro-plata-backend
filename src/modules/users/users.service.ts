@@ -26,6 +26,9 @@ export class UsersService {
     dbUser.username = newUser.username;
     dbUser.email = newUser.email;
     dbUser.passwordHash = bcryptHashSync(newUser.password, 10);
+    dbUser.organizationId = newUser?.organizationId
+      ? newUser.organizationId
+      : null;
     const createdUser = await this.usersRepository.save(dbUser);
 
     return this.mapEntityToDto(createdUser);
@@ -45,6 +48,7 @@ export class UsersService {
       email: userFound?.email,
       username: userFound?.username,
       password: userFound?.passwordHash,
+      organizationId: userFound?.organizationId,
     };
   }
 
@@ -62,6 +66,7 @@ export class UsersService {
       email: userFound?.email,
       username: userFound?.username,
       password: userFound?.passwordHash,
+      organizationId: userFound?.organizationId,
     };
   }
 
@@ -70,6 +75,7 @@ export class UsersService {
       id: userEntity.id,
       username: userEntity.username,
       email: userEntity.email,
+      organizationId: userEntity.organizationId,
     };
   }
 }

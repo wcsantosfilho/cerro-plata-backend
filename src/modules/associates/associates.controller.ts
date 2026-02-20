@@ -13,6 +13,7 @@ import {
 import { AssociatesService } from './associates.service';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthGuard } from '../../auth/auth.guard';
+import { TenantGuard } from 'src/common/tenant/tenant.guard';
 import {
   AssociateDto,
   AssociateRouteParameters,
@@ -22,9 +23,10 @@ import { ApiCreateAssociateDoc } from './docs/create-associate.doc';
 import { ApiFindAllAssociatesDoc } from './docs/find-all-associate.docs';
 import { ApiFindByIdAssociateDoc } from './docs/find-by-id-associate.doc';
 import { ApiUpdateAssociateDoc } from './docs/update-associate.doc';
+import { Tenant } from '../../common/tenant/tenant.decorator';
 
 @ApiTags('associates')
-@UseGuards(AuthGuard)
+@UseGuards(AuthGuard, TenantGuard)
 @ApiBearerAuth('access-token')
 @Controller('associates')
 export class AssociatesController {
@@ -40,9 +42,10 @@ export class AssociatesController {
   @ApiFindAllAssociatesDoc()
   @UsePipes(new ValidationPipe({ transform: true }))
   async findAll(
+    @Tenant() tenantId: string,
     @Query() params: FindAllParameters,
   ): Promise<{ items: AssociateDto[]; total: number }> {
-    return await this.associatesService.findAll(params);
+    return await this.associatesService.findAll(tenantId, params);
   }
 
   @Get('/:id')
