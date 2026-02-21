@@ -27,7 +27,7 @@ export class OrganizationsService {
     });
     if (!organization) {
       throw new HttpException(
-        `Associate with id: ${id} not found`,
+        `Organization with id: ${id} not found`,
         HttpStatus.NOT_FOUND,
       );
     }
