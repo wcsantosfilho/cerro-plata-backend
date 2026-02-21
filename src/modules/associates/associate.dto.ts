@@ -82,12 +82,13 @@ export class AssociateDto {
   id?: string;
 
   @ApiProperty({
-    required: true,
+    required: false,
     description: 'Organization ID to which the associate belongs (tenant)',
     example: '0d33af20-ded0-4e7c-b6bf-8879d480adc0',
   })
   @IsUUID()
-  organizationId: string;
+  @IsOptional()
+  organizationId?: string;
 
   @ApiPropertyOptional({
     required: false,

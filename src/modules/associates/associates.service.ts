@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AssociateEntity } from '../../db/entities/associate.entity';
 import { OrganizationsService } from '../organizations/organizations.service';
-import { TenantContextService } from '../../common/tenant/tenant-context.service';
 import {
   AssociateDto,
   AssociateTypeEnum,
@@ -20,7 +19,6 @@ export class AssociatesService {
     @InjectRepository(AssociateEntity)
     private readonly associateRepository: Repository<AssociateEntity>,
     private readonly organizationsService: OrganizationsService,
-    private tenantContext: TenantContextService,
   ) {}
 
   async create(associate: AssociateDto): Promise<AssociateDto> {
@@ -31,6 +29,7 @@ export class AssociatesService {
       associate.paymentPlan as keyof typeof PaymentPlanEnum;
     const bloodKey = associate.bloodType as keyof typeof BloodTypeEnum;
 
+    // Busca a organização para garantir que existe e para relacionar com o associado
     let organization;
     if (associate.organizationId) {
       organization = await this.organizationsService.findOrganizationByIdOrFail(
@@ -56,14 +55,24 @@ export class AssociatesService {
       fepamDueDate: associate.fepamDueDate,
     };
 
-    // Regra de Negócio: Se o associationRecord for fornecido, verificar se já existe
+    // Regra de Negócio: Verifica se a Organization existe
+    if (associate.organizationId && !organization) {
+      throw new HttpException(
+        `Organization with id: ${associate.organizationId} not found`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    // Regra de Negócio: Se o associationRecord for fornecido, verificar se já existe dentro da Organization
     if (
       associateToSave.associationRecord != undefined &&
       typeof associateToSave.associationRecord === 'string'
     ) {
-      const existingAssociate = await this.findByAssociationRecord(
-        associateToSave.associationRecord,
-      );
+      const existingAssociate =
+        await this.findByAssociationRecordAndOrganization(
+          associateToSave.organization?.id || '',
+          associateToSave.associationRecord,
+        );
       if (existingAssociate) {
         throw new HttpException(
           `Associate with associationRecord: ${associateToSave.associationRecord} already exists`,
@@ -94,7 +103,10 @@ export class AssociatesService {
       }
 
       // Já existe?
-      const existingAssociate = await this.findByCPF(associateToSave.cpf);
+      const existingAssociate = await this.findByCPFAndOrganization(
+        associateToSave.organization?.id || '',
+        associateToSave.cpf,
+      );
       if (existingAssociate) {
         throw new HttpException(
           `Associate with CPF: ${associateToSave.cpf} already exists`,
@@ -111,6 +123,9 @@ export class AssociatesService {
   async update(id: string, associate: AssociateDto) {
     const foundAssociate = await this.associateRepository.findOne({
       where: { id },
+      relations: {
+        organization: true, // Join the 'organization' relation
+      },
     });
 
     if (!foundAssociate) {
@@ -125,9 +140,11 @@ export class AssociatesService {
       associate.associationRecord &&
       associate.associationRecord !== foundAssociate.associationRecord
     ) {
-      const existingAssociate = await this.findByAssociationRecord(
-        associate.associationRecord,
-      );
+      const existingAssociate =
+        await this.findByAssociationRecordAndOrganization(
+          foundAssociate.organization.id,
+          associate.associationRecord,
+        );
       if (existingAssociate) {
         throw new HttpException(
           `Associate with associationRecord: ${associate.associationRecord} already exists`,
@@ -149,7 +166,10 @@ export class AssociatesService {
 
     // Regra de Negócio: Verificar duplicidade de CPF se for alterado
     if (associate.cpf && associate.cpf !== foundAssociate.cpf) {
-      const existingAssociate = await this.findByCPF(associate.cpf);
+      const existingAssociate = await this.findByCPFAndOrganization(
+        foundAssociate.organization.id,
+        associate.cpf,
+      );
       if (existingAssociate) {
         throw new HttpException(
           `Associate with CPF: ${associate.cpf} already exists`,
@@ -244,11 +264,12 @@ export class AssociatesService {
     return this.mapEntityToDto(associateFound);
   }
 
-  async findByAssociationRecord(
+  async findByAssociationRecordAndOrganization(
+    organizationId: string,
     associationRecord: string,
   ): Promise<AssociateDto | null> {
     const associateFound = await this.associateRepository.findOne({
-      where: { associationRecord },
+      where: { associationRecord, organization: { id: organizationId } },
       relations: {
         organization: true, // Join the 'organization' relation
       },
@@ -261,9 +282,12 @@ export class AssociatesService {
     return this.mapEntityToDto(associateFound);
   }
 
-  async findByCPF(cpf: string): Promise<AssociateDto | null> {
+  async findByCPFAndOrganization(
+    organizationId: string,
+    cpf: string,
+  ): Promise<AssociateDto | null> {
     const associateFound = await this.associateRepository.findOne({
-      where: { cpf },
+      where: { cpf, organization: { id: organizationId } },
       relations: {
         organization: true, // Join the 'organization' relation
       },

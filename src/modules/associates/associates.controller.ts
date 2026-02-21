@@ -34,8 +34,14 @@ export class AssociatesController {
 
   @Post()
   @ApiCreateAssociateDoc()
-  async create(@Body() associate: AssociateDto): Promise<AssociateDto> {
-    return await this.associatesService.create(associate);
+  async create(
+    @Tenant() tenantId: string,
+    @Body() associate: AssociateDto,
+  ): Promise<AssociateDto> {
+    return await this.associatesService.create({
+      ...associate,
+      organizationId: tenantId,
+    });
   }
 
   @Get()
@@ -59,9 +65,13 @@ export class AssociatesController {
   @Put('/:id')
   @ApiUpdateAssociateDoc()
   async update(
+    @Tenant() tenantId: string,
     @Param() params: AssociateRouteParameters,
     @Body() associate: AssociateDto,
   ) {
-    await this.associatesService.update(params.id, associate);
+    await this.associatesService.update(params.id, {
+      ...associate,
+      organizationId: tenantId,
+    });
   }
 }
