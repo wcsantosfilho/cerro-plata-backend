@@ -8,9 +8,13 @@ export class TenantContextService {
   constructor(@Inject(REQUEST) private readonly request: Request) {}
 
   getTenantId(): string {
-    // console.log(`Request: ${this.request.method} ${this.request.url} `);
+    console.log(`Request: ${this.request.method} ${this.request.url} `);
     // return this.request?.user?.tenant;
-    // const a = JSON.stringify(this.request?.user);
+
+    // const ctx = this.host.switchToHttp();
+
+    // const a = ctx.switchToHttp().getRequest<RequestWithUser>();
+    // const a = ctx.console; // const a = JSON.stringify(this.request?.user);
     // console.log(`User from request: ${a}`);
     return '0668342c-0e50-4dee-a022-899e5fb0b1f1'; // Mocked tenant ID for testing
   }

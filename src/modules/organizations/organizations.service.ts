@@ -34,6 +34,37 @@ export class OrganizationsService {
     return organization;
   }
 
+  async findById(id: string): Promise<OrganizationEntity> {
+    const organization = await this.organizationRepository.findOne({
+      where: { id },
+    });
+    if (!organization) {
+      throw new HttpException(
+        `Organization with id: ${id} not found`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    return organization;
+  }
+
+  async findByTenant(tenantId: string): Promise<OrganizationEntity> {
+    const organization = await this.organizationRepository.findOne({
+      where: { id: tenantId },
+    });
+    if (!organization) {
+      throw new HttpException(
+        `Organization with id: ${tenantId} not found`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    return organization;
+  }
+
+  getProfile(user: string) {
+    // user info available here
+    return user;
+  }
+
   private mapEntityToDto(
     organizationEntity: OrganizationEntity,
   ): OrganizationDto {

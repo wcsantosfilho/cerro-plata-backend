@@ -3,6 +3,7 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
+  IsUUID,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -32,4 +33,9 @@ export class OrganizationDto {
   @IsDateString()
   @IsOptional()
   updatedAt: Date;
+}
+
+export class OrganizationRouteParameters {
+  @IsUUID()
+  organizationId: string;
 }
