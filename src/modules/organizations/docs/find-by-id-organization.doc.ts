@@ -2,7 +2,7 @@ import { applyDecorators } from '@nestjs/common';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { ApiCommonErrors } from '../../../common/decorators/api/api-error.doc';
 
-export function ApiGetOrganizationDocs() {
+export function ApiFindByIdOrganizationDocs() {
   return applyDecorators(
     ApiOperation({ summary: 'Get an organization by ID' }),
     ApiResponse({

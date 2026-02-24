@@ -8,7 +8,8 @@ import {
 } from './organization.dto';
 import { OrganizationsService } from './organizations.service';
 import { Get, Body, Post, Param } from '@nestjs/common';
-import { ApiGetOrganizationDocs } from './docs/get-organization.doc';
+import { ApiFindByIdOrganizationDocs } from './docs/find-by-id-organization.doc';
+import { ApiFindByTenantOrganizationDocs } from './docs/find-by-tenant-organization.doc';
 import { CurrentTenant } from '../../common/decorators/current-tenant.decorator';
 
 @ApiTags('organizations')
@@ -27,13 +28,13 @@ export class OrganizationsController {
   }
 
   @Get('tenant')
-  @ApiGetOrganizationDocs()
-  getProfile(@CurrentTenant() tenantId: string) {
+  @ApiFindByTenantOrganizationDocs()
+  async findByTenant(@CurrentTenant() tenantId: string) {
     return this.organizationsService.findByTenant(tenantId);
   }
 
   @Get('/:id')
-  @ApiGetOrganizationDocs()
+  @ApiFindByIdOrganizationDocs()
   async findById(
     @Param() params: OrganizationRouteParameters,
   ): Promise<OrganizationDto | null> {
