@@ -28,6 +28,15 @@ export class PaymentDto {
   @IsOptional()
   associateId?: string;
 
+  @ApiProperty({
+    required: false,
+    description: 'Organization ID to which the payment belongs (tenant)',
+    example: '0d33af20-ded0-4e7c-b6bf-8879d480adc0',
+  })
+  @IsUUID()
+  @IsOptional()
+  organizationId?: string;
+
   @ApiPropertyOptional({
     required: false,
     description: 'Payment effective date',

@@ -8,6 +8,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '../../auth/auth.guard';
+import { TenantGuard } from 'src/common/tenant/tenant.guard';
 import {
   AssociateRouteParameters,
   PaymentDto,
@@ -18,9 +19,10 @@ import { PaymentsService } from './payments.service';
 import { ApiCreatePaymentDocs } from './docs/create-payment.doc';
 import { ApiFindAllPaymentsDocs } from './docs/find-all-payment.docs';
 import { ApiFindByAssociateDocs } from './docs/find-by-associate-payment.doc';
+import { Tenant } from '../../common/tenant/tenant.decorator';
 
 @ApiTags('payments')
-@UseGuards(AuthGuard)
+@UseGuards(AuthGuard, TenantGuard)
 @ApiBearerAuth('access-token')
 @Controller('payments')
 export class PaymentsController {
@@ -28,25 +30,34 @@ export class PaymentsController {
 
   @Post()
   @ApiCreatePaymentDocs()
-  async create(@Body() payment: PaymentDto): Promise<PaymentDto> {
-    return await this.paymentsService.create(payment);
+  async create(
+    @Tenant() tenantId: string,
+    @Body() payment: PaymentDto,
+  ): Promise<PaymentDto> {
+    return await this.paymentsService.create({
+      ...payment,
+      organizationId: tenantId,
+    });
   }
 
   @Get()
   @ApiFindAllPaymentsDocs()
   async findAll(
+    @Tenant() tenantId: string,
     @Query() params: FindAllParameters,
   ): Promise<{ items: PaymentDto[]; total: number }> {
-    return await this.paymentsService.findAll(params);
+    return await this.paymentsService.findAll(tenantId, params);
   }
 
   @Get('/associate/:associateId')
   @ApiFindByAssociateDocs()
-  async findByAssociate(
+  async findByAssociateAndOrganization(
+    @Tenant() tenantId: string,
     @Param() params: AssociateRouteParameters,
     @Query() queryParams: FindAllParameters,
   ): Promise<{ items: PaymentDto[]; total: number }> {
-    return await this.paymentsService.findByAssociate(
+    return await this.paymentsService.findByAssociateAndOrganization(
+      tenantId,
       params.associateId,
       queryParams,
     );

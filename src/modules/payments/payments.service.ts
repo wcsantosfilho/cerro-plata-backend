@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { PaymentEntity } from '../../db/entities/payment.entity';
 import { PaymentDto, PaymentTypeEnum, FindAllParameters } from './payment.dto';
 import { AssociatesService } from '../associates/associates.service';
+import { OrganizationsService } from '../organizations/organizations.service';
 
 @Injectable()
 export class PaymentsService {
@@ -11,6 +12,7 @@ export class PaymentsService {
     @InjectRepository(PaymentEntity)
     private readonly paymentRepository: Repository<PaymentEntity>,
     private readonly associatesService: AssociatesService,
+    private readonly organizationsService: OrganizationsService,
   ) {}
 
   async create(payment: PaymentDto): Promise<PaymentDto> {
@@ -24,6 +26,22 @@ export class PaymentsService {
       );
     }
 
+    // Busca a organização para garantir que existe e para relacionar com o pagamento
+    let organization;
+    if (payment.organizationId) {
+      organization = await this.organizationsService.findOrganizationByIdOrFail(
+        payment.organizationId,
+      );
+    }
+
+    // Regra de Negócio: Verifica se a Organization existe
+    if (payment.organizationId && !organization) {
+      throw new HttpException(
+        `Organization with id: ${payment.organizationId} not found`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
     let associate = null;
     if (payment.associateId) {
       associate = await this.associatesService.findAssociateByIdOrFail(
@@ -33,6 +51,7 @@ export class PaymentsService {
     const typeKey = payment.type as keyof typeof PaymentTypeEnum;
     const paymentToSave: Partial<PaymentEntity> = {
       associate: associate,
+      organization: organization,
       effectiveDate: payment.effectiveDate,
       dueDate: payment.dueDate,
       description: payment.description,
@@ -44,13 +63,24 @@ export class PaymentsService {
     return this.mapEntityToDto(createdPayment);
   }
 
-  async findAll(queryParams: FindAllParameters): Promise<{
+  async findAll(
+    tenantId: string,
+    queryParams: FindAllParameters,
+  ): Promise<{
     items: PaymentDto[];
     total: number;
   }> {
+    const organizationId = tenantId;
     const query = this.paymentRepository
       .createQueryBuilder('payment')
+      .innerJoinAndSelect('payment.organization', 'organization')
       .leftJoinAndSelect('payment.associate', 'associate');
+
+    if (organizationId) {
+      query.andWhere('payment.organization_id = :organizationId', {
+        organizationId,
+      });
+    }
 
     if (queryParams?.effectiveDate) {
       query.andWhere('payment.effective_date = :effectiveDate', {
@@ -100,14 +130,19 @@ export class PaymentsService {
     return { items, total };
   }
 
-  async findByAssociate(
+  async findByAssociateAndOrganization(
+    organizationId: string,
     associateId: string,
     queryParams: FindAllParameters,
   ): Promise<{ items: PaymentDto[]; total: number }> {
     const query = this.paymentRepository
       .createQueryBuilder('payment')
+      .innerJoinAndSelect('payment.organization', 'organization')
       .leftJoinAndSelect('payment.associate', 'associate')
-      .where('payment.associate_id = :associateId', { associateId });
+      .where('payment.associate_id = :associateId', { associateId })
+      .andWhere('payment.organization_id = :organizationId', {
+        organizationId,
+      });
 
     if (queryParams?.effectiveDate) {
       query.andWhere('payment.effective_date = :effectiveDate', {
@@ -164,6 +199,7 @@ export class PaymentsService {
       associateId: paymentEntity.associate
         ? paymentEntity.associate.id
         : undefined,
+      organizationId: paymentEntity.organization.id,
       effectiveDate: paymentEntity.effectiveDate,
       dueDate: paymentEntity.dueDate,
       description: paymentEntity.description,
