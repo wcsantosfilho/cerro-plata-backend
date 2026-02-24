@@ -7,6 +7,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { AssociateEntity } from './associate.entity';
+import { PaymentEntity } from './payment.entity';
 
 @Entity({ name: 'organizations' })
 export class OrganizationEntity {
@@ -24,4 +25,7 @@ export class OrganizationEntity {
 
   @OneToMany(() => AssociateEntity, (associate) => associate.organization)
   associates?: AssociateEntity[];
+
+  @OneToMany(() => PaymentEntity, (payment) => payment.organization)
+  payments?: PaymentEntity[];
 }

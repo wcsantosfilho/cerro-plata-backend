@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 
 import { AssociateEntity } from './associate.entity';
+import { OrganizationEntity } from './organization.entity';
 
 @Entity({ name: 'payments' })
 export class PaymentEntity {
@@ -42,4 +43,15 @@ export class PaymentEntity {
   })
   @JoinColumn({ name: 'associate_id' })
   associate?: AssociateEntity | null;
+
+  @ManyToOne(
+    () => OrganizationEntity,
+    (organization) => organization.payments,
+    {
+      onDelete: 'SET NULL',
+      nullable: true,
+    },
+  )
+  @JoinColumn({ name: 'organization_id' })
+  organization: OrganizationEntity;
 }
