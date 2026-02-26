@@ -246,9 +246,12 @@ export class AssociatesService {
     return { items, total };
   }
 
-  async findById(id: string): Promise<AssociateDto | null> {
+  async findByIdAndOrganization(
+    tenantId: string,
+    id: string,
+  ): Promise<AssociateDto | null> {
     const associateFound = await this.associateRepository.findOne({
-      where: { id },
+      where: { id, organization: { id: tenantId } },
       relations: {
         organization: true, // Join the 'organization' relation
       },

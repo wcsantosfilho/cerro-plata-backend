@@ -56,10 +56,14 @@ export class AssociatesController {
 
   @Get('/:id')
   @ApiFindByIdAssociateDoc()
-  async findById(
+  async findByIdAndOrganization(
+    @Tenant() tenantId: string,
     @Param() params: AssociateRouteParameters,
   ): Promise<AssociateDto | null> {
-    return await this.associatesService.findById(params.id);
+    return await this.associatesService.findByIdAndOrganization(
+      tenantId,
+      params.id,
+    );
   }
 
   @Put('/:id')

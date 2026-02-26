@@ -44,13 +44,33 @@ export class PaymentsService {
 
     let associate = null;
     if (payment.associateId) {
-      associate = await this.associatesService.findAssociateByIdOrFail(
+      associate = await this.associatesService.findByIdAndOrganization(
+        payment.organizationId ? payment.organizationId : '',
         payment.associateId,
       );
     }
+
+    // Regra de Negócio: Verifica se o Associate é da mesma Organization existe
+    if (
+      payment.organizationId &&
+      associate &&
+      associate.organizationId !== payment.organizationId
+    ) {
+      throw new HttpException(
+        `Associate with id: ${payment.associateId} does not belong to organization with id: ${payment.organizationId}`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
     const typeKey = payment.type as keyof typeof PaymentTypeEnum;
+    let associateToSave = null;
+    if (payment.associateId) {
+      associateToSave = await this.associatesService.findAssociateByIdOrFail(
+        payment.associateId,
+      );
+    }
     const paymentToSave: Partial<PaymentEntity> = {
-      associate: associate,
+      associate: associateToSave,
       organization: organization,
       effectiveDate: payment.effectiveDate,
       dueDate: payment.dueDate,
