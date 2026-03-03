@@ -5,6 +5,7 @@ import { UserEntity } from './entities/users.entity';
 import { AssociateEntity } from './entities/associate.entity';
 import { PaymentEntity } from './entities/payment.entity';
 import { OrganizationEntity } from './entities/organization.entity';
+import { DueEntity } from './entities/due.entity';
 
 config();
 
@@ -19,7 +20,13 @@ const dataSourceOptions: DataSourceOptions = {
   username: configService.get<string>('DB_USERNAME'),
   password: configService.get<string>('DB_PASSWORD'),
   database: configService.get<string>('DB_NAME'),
-  entities: [UserEntity, AssociateEntity, PaymentEntity, OrganizationEntity],
+  entities: [
+    UserEntity,
+    AssociateEntity,
+    PaymentEntity,
+    OrganizationEntity,
+    DueEntity,
+  ],
   migrations: [__dirname + '/migrations/*.ts'],
   synchronize: false,
   ssl:
