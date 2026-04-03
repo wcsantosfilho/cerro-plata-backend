@@ -102,6 +102,20 @@ export class DuesService {
     return this.mapEntityToDto(createdDue);
   }
 
+  async findDueByIdOrFail(id: string): Promise<DueEntity> {
+    const due = await this.dueRepository.findOne({
+      where: { id },
+      relations: ['associate', 'organization', 'payments'],
+    });
+    if (!due) {
+      throw new HttpException(
+        `Due with id: ${id} not found`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    return due;
+  }
+
   async findAll(
     tenantId: string,
     queryParams: FindAllParameters,

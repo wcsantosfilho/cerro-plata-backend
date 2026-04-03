@@ -24,9 +24,23 @@ export class PaymentDto {
   @IsOptional()
   id?: string;
 
+  @ApiPropertyOptional({
+    required: false,
+    description: 'Associate ID to which the payment belongs',
+    example: '1a2b3c4d-5678-90ab-cdef-1234567890ab',
+  })
   @IsUUID()
   @IsOptional()
   associateId?: string;
+
+  @ApiPropertyOptional({
+    required: false,
+    description: 'Due ID to which the payment belongs',
+    example: '1a2b3c4d-5678-90ab-cdef-1234567890ab',
+  })
+  @IsUUID()
+  @IsOptional()
+  dueId?: string;
 
   @ApiProperty({
     required: false,

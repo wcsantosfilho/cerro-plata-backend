@@ -11,6 +11,7 @@ import {
 
 import { PaymentEntity } from './payment.entity';
 import { OrganizationEntity } from './organization.entity';
+import { DueEntity } from './due.entity';
 
 class Address {
   @Column({ name: 'zip_code' })
@@ -104,4 +105,7 @@ export class AssociateEntity {
 
   @OneToMany(() => PaymentEntity, (payment) => payment.associate)
   payments?: PaymentEntity[];
+
+  @OneToMany(() => DueEntity, (due) => due.associate)
+  dues?: DueEntity[];
 }

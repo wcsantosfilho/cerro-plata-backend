@@ -5,6 +5,7 @@ import { PaymentEntity } from '../../db/entities/payment.entity';
 import { PaymentDto, PaymentTypeEnum, FindAllParameters } from './payment.dto';
 import { AssociatesService } from '../associates/associates.service';
 import { OrganizationsService } from '../organizations/organizations.service';
+import { DuesService } from '../dues/dues.service';
 
 @Injectable()
 export class PaymentsService {
@@ -13,6 +14,7 @@ export class PaymentsService {
     private readonly paymentRepository: Repository<PaymentEntity>,
     private readonly associatesService: AssociatesService,
     private readonly organizationsService: OrganizationsService,
+    private readonly duesService: DuesService,
   ) {}
 
   async create(payment: PaymentDto): Promise<PaymentDto> {
@@ -22,6 +24,17 @@ export class PaymentsService {
     ) {
       throw new HttpException(
         'MEMBERSHIP_FEES payments must have an associated associateId',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    // Regra de negócio: Pagamentos do tipo MEMBERSHIP_FEE devem estar associados a uma Due existente
+    if (
+      (payment.type as PaymentTypeEnum) === PaymentTypeEnum.MEMBERSHIP_FEE &&
+      !payment.dueId
+    ) {
+      throw new HttpException(
+        'MEMBERSHIP_FEES payments must have an associated dueId',
         HttpStatus.BAD_REQUEST,
       );
     }
@@ -50,7 +63,7 @@ export class PaymentsService {
       );
     }
 
-    // Regra de Negócio: Verifica se o Associate é da mesma Organization existe
+    // Regra de Negócio: Verifica se o Associate é da mesma Organization que o pagamento (se associateId for fornecido)
     if (
       payment.organizationId &&
       associate &&
@@ -69,9 +82,42 @@ export class PaymentsService {
         payment.associateId,
       );
     }
+
+    let dueToSave = null;
+    if (payment.dueId) {
+      dueToSave = await this.duesService.findDueByIdOrFail(payment.dueId);
+    }
+
+    // Regra de Negócio: Verifica se o Associate do 'Due' é o mesmo Associate do 'Payment'
+    if (
+      associateToSave &&
+      dueToSave &&
+      dueToSave.associate &&
+      associateToSave.id !== dueToSave.associate.id
+    ) {
+      throw new HttpException(
+        `The associate of the payment (id: ${associateToSave.id}) must be the same as the associate of the due (id: ${dueToSave.associate.id})`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    // Regra de Negócio: A 'Due' não deve ser paga duas vezes...
+    if (
+      associateToSave &&
+      dueToSave &&
+      dueToSave.associate &&
+      dueToSave.payments?.some((payment) => payment)
+    ) {
+      throw new HttpException(
+        `The informed due is already associated with a payment (id: ${payment.dueId})`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
     const paymentToSave: Partial<PaymentEntity> = {
       associate: associateToSave,
       organization: organization,
+      due: dueToSave,
       effectiveDate: payment.effectiveDate,
       dueDate: payment.dueDate,
       description: payment.description,
@@ -219,6 +265,7 @@ export class PaymentsService {
       associateId: paymentEntity.associate
         ? paymentEntity.associate.id
         : undefined,
+      dueId: paymentEntity.due ? paymentEntity.due.id : undefined,
       organizationId: paymentEntity.organization.id,
       effectiveDate: paymentEntity.effectiveDate,
       dueDate: paymentEntity.dueDate,

@@ -10,6 +10,7 @@ import {
 
 import { AssociateEntity } from './associate.entity';
 import { OrganizationEntity } from './organization.entity';
+import { DueEntity } from './due.entity';
 
 @Entity({ name: 'payments' })
 export class PaymentEntity {
@@ -43,6 +44,13 @@ export class PaymentEntity {
   })
   @JoinColumn({ name: 'associate_id' })
   associate?: AssociateEntity | null;
+
+  @ManyToOne(() => DueEntity, (due) => due.payments, {
+    onDelete: 'SET NULL',
+    nullable: true,
+  })
+  @JoinColumn({ name: 'due_id' })
+  due?: DueEntity | null;
 
   @ManyToOne(
     () => OrganizationEntity,

@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 import { AssociateEntity } from './associate.entity';
 import { PaymentEntity } from './payment.entity';
+import { DueEntity } from './due.entity';
 
 @Entity({ name: 'organizations' })
 export class OrganizationEntity {
@@ -28,4 +29,7 @@ export class OrganizationEntity {
 
   @OneToMany(() => PaymentEntity, (payment) => payment.organization)
   payments?: PaymentEntity[];
+
+  @OneToMany(() => DueEntity, (due) => due.organization)
+  dues?: DueEntity[];
 }

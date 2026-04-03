@@ -6,10 +6,12 @@ import {
   PrimaryGeneratedColumn,
   ManyToOne,
   JoinColumn,
+  OneToMany,
 } from 'typeorm';
 
 import { AssociateEntity } from './associate.entity';
 import { OrganizationEntity } from './organization.entity';
+import { PaymentEntity } from './payment.entity';
 
 @Entity({ name: 'dues' })
 export class DueEntity {
@@ -37,21 +39,23 @@ export class DueEntity {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
-  @ManyToOne(() => AssociateEntity, (associate) => associate.payments, {
+  @ManyToOne(() => AssociateEntity, (associate) => associate.dues, {
     onDelete: 'SET NULL',
     nullable: true,
   })
   @JoinColumn({ name: 'associate_id' })
   associate?: AssociateEntity | null;
 
-  @ManyToOne(
-    () => OrganizationEntity,
-    (organization) => organization.payments,
-    {
-      onDelete: 'SET NULL',
-      nullable: true,
-    },
-  )
+  @OneToMany(() => PaymentEntity, (payment) => payment.due, {
+    onDelete: 'SET NULL',
+    nullable: true,
+  })
+  payments?: PaymentEntity[];
+
+  @ManyToOne(() => OrganizationEntity, (organization) => organization.dues, {
+    onDelete: 'SET NULL',
+    nullable: true,
+  })
   @JoinColumn({ name: 'organization_id' })
   organization: OrganizationEntity;
 }
