@@ -3,9 +3,9 @@ import {
   IsEnum,
   IsNumber,
   IsOptional,
-  IsPositive,
   IsString,
   IsUUID,
+  Matches,
   MaxLength,
   MinLength,
   Min,
@@ -72,9 +72,11 @@ export class DueDto {
     description: 'Amount due',
     example: '100.00',
   })
-  @IsNumber()
-  @IsPositive()
-  amount: number;
+  @IsString()
+  @Matches(/^\d+(\.\d{1,2})?$/, {
+    message: 'amount must be a decimal string with up to 2 decimal places',
+  })
+  amount: string;
 
   @ApiProperty({
     required: true,

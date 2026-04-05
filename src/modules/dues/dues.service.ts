@@ -10,6 +10,7 @@ import {
   FindAllParameters,
   PaymentPlanEnum,
 } from './due.dto';
+import { Decimal } from 'decimal.js';
 
 @Injectable()
 export class DuesService {
@@ -56,6 +57,9 @@ export class DuesService {
       );
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+    const amountToSave = new Decimal(due.amount);
+
     const typeKey = due.type as keyof typeof PaymentTypeEnum;
     const paymentPlanKey = due.paymentPlan as keyof typeof PaymentPlanEnum;
     const dueToSave: Partial<DueEntity> = {
@@ -63,7 +67,8 @@ export class DuesService {
       organization: organization,
       dueDate: due.dueDate,
       description: due.description,
-      amount: due.amount,
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+      amount: amountToSave.toNumber(),
       type: PaymentTypeEnum[typeKey],
       paymentPlan: PaymentPlanEnum[paymentPlanKey],
     };
@@ -187,13 +192,18 @@ export class DuesService {
     const typeKey = dueEntity.type as keyof typeof PaymentTypeEnum;
     const paymentPlanKey =
       dueEntity.paymentPlan as keyof typeof PaymentPlanEnum;
+    // paymentEntity.amount in create is a number, but in query is a string, so we need to convert it to Decimal first and then to string with 2 decimal places
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+    const stringedAmount = new Decimal(dueEntity.amount).toFixed(2);
+
     return {
       id: dueEntity.id,
       associateId: dueEntity.associate ? dueEntity.associate.id : undefined,
       organizationId: dueEntity.organization.id,
       dueDate: dueEntity.dueDate,
       description: dueEntity.description,
-      amount: dueEntity.amount,
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      amount: stringedAmount,
       type: PaymentTypeEnum[typeKey],
       paymentPlan: PaymentPlanEnum[paymentPlanKey],
       createdAt: dueEntity.createdAt,

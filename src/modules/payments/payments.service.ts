@@ -6,6 +6,7 @@ import { PaymentDto, PaymentTypeEnum, FindAllParameters } from './payment.dto';
 import { AssociatesService } from '../associates/associates.service';
 import { OrganizationsService } from '../organizations/organizations.service';
 import { DuesService } from '../dues/dues.service';
+import Decimal from 'decimal.js';
 
 @Injectable()
 export class PaymentsService {
@@ -114,6 +115,8 @@ export class PaymentsService {
       );
     }
 
+    const amountToSave = new Decimal(payment.amount);
+
     const paymentToSave: Partial<PaymentEntity> = {
       associate: associateToSave,
       organization: organization,
@@ -121,7 +124,8 @@ export class PaymentsService {
       effectiveDate: payment.effectiveDate,
       dueDate: payment.dueDate,
       description: payment.description,
-      amount: payment.amount,
+
+      amount: amountToSave.toNumber(),
       type: PaymentTypeEnum[typeKey],
     };
 
@@ -260,6 +264,8 @@ export class PaymentsService {
 
   private mapEntityToDto(paymentEntity: PaymentEntity): PaymentDto {
     const typeKey = paymentEntity.type as keyof typeof PaymentTypeEnum;
+    // paymentEntity.amount in create is a number, but in query is a string, so we need to convert it to Decimal first and then to string with 2 decimal places
+    const stringedAmount = new Decimal(paymentEntity.amount).toFixed(2);
     return {
       id: paymentEntity.id,
       associateId: paymentEntity.associate
@@ -270,7 +276,7 @@ export class PaymentsService {
       effectiveDate: paymentEntity.effectiveDate,
       dueDate: paymentEntity.dueDate,
       description: paymentEntity.description,
-      amount: paymentEntity.amount,
+      amount: stringedAmount,
       type: PaymentTypeEnum[typeKey],
       createdAt: paymentEntity.createdAt,
       updatedAt: paymentEntity.updatedAt,

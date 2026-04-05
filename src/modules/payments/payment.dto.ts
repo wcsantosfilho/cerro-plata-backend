@@ -3,12 +3,12 @@ import {
   IsEnum,
   IsNumber,
   IsOptional,
-  IsPositive,
   IsString,
   IsUUID,
   MaxLength,
   MinLength,
   Min,
+  Matches,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
@@ -83,9 +83,11 @@ export class PaymentDto {
     description: 'Amount paid',
     example: '100.00',
   })
-  @IsNumber()
-  @IsPositive()
-  amount: number;
+  @IsString()
+  @Matches(/^\d+(\.\d{1,2})?$/, {
+    message: 'amount must be a decimal string with up to 2 decimal places',
+  })
+  amount: string;
 
   @ApiProperty({
     required: true,
