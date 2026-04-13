@@ -4,7 +4,7 @@ import {
   Get,
   Param,
   Post,
-  Put,
+  Patch,
   Query,
   UseGuards,
   UsePipes,
@@ -22,8 +22,9 @@ import {
 import { ApiCreateAssociateDoc } from './docs/create-associate.doc';
 import { ApiFindAllAssociatesDoc } from './docs/find-all-associate.docs';
 import { ApiFindByIdAssociateDoc } from './docs/find-by-id-associate.doc';
-import { ApiUpdateAssociateDoc } from './docs/update-associate.doc';
 import { Tenant } from '../../common/tenant/tenant.decorator';
+import { PatchAssociateDto } from './patchAssociate.dto';
+import { ApiPartialUpdateAssociateDoc } from './docs/partial-update-associate.doc';
 
 @ApiTags('associates')
 @UseGuards(AuthGuard, TenantGuard)
@@ -66,14 +67,14 @@ export class AssociatesController {
     );
   }
 
-  @Put('/:id')
-  @ApiUpdateAssociateDoc()
-  async update(
+  @Patch('/:id')
+  @ApiPartialUpdateAssociateDoc()
+  async patch(
     @Tenant() tenantId: string,
     @Param() params: AssociateRouteParameters,
-    @Body() associate: AssociateDto,
-  ) {
-    await this.associatesService.update(params.id, {
+    @Body() associate: PatchAssociateDto,
+  ): Promise<AssociateDto> {
+    return await this.associatesService.update(params.id, {
       ...associate,
       organizationId: tenantId,
     });

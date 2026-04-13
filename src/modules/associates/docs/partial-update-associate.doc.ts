@@ -2,10 +2,10 @@ import { applyDecorators } from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { ApiCommonErrors } from '../../../common/decorators/api/api-error.doc';
 
-export function ApiUpdateAssociateDoc() {
+export function ApiPartialUpdateAssociateDoc() {
   return applyDecorators(
     ApiOperation({
-      summary: 'Update an existing associate',
+      summary: 'Update, partially, an existing associate',
     }),
     ApiParam({
       name: 'id',

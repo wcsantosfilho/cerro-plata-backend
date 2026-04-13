@@ -12,6 +12,7 @@ import {
   BloodTypeEnum,
 } from './associate.dto';
 import { validateCPF } from '../../common/validatecpf';
+import { PatchAssociateDto } from './patchAssociate.dto';
 
 @Injectable()
 export class AssociatesService {
@@ -120,7 +121,10 @@ export class AssociatesService {
     return this.mapEntityToDto(createdAssociate);
   }
 
-  async update(id: string, associate: AssociateDto) {
+  async update(
+    id: string,
+    associate: PatchAssociateDto,
+  ): Promise<AssociateDto> {
     const foundAssociate = await this.associateRepository.findOne({
       where: { id },
       relations: {
@@ -178,7 +182,18 @@ export class AssociatesService {
       }
     }
 
-    await this.associateRepository.update(id, this.mapDtoToEntity(associate));
+    // Para o patch, precisamos manter os campos que não foram enviados, então buscamos o registro atual e sobrescrevemos apenas os campos enviados
+    const updatedAssociate = {
+      ...this.mapEntityToDto(foundAssociate), // mantém os campos atuais
+      ...associate, // sobrescreve com os campos enviados no patch
+    };
+
+    await this.associateRepository.update(
+      id,
+      this.mapDtoToEntity(updatedAssociate),
+    );
+
+    return updatedAssociate;
   }
 
   async findAll(
