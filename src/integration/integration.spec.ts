@@ -6,8 +6,10 @@
 // testing module is compiled – so that those types are accepted in a SQLite
 // context without touching the production entity definitions.
 // ---------------------------------------------------------------------------
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const { EntityMetadataValidator } = require('typeorm/metadata-builder/EntityMetadataValidator');
+
+const {
+  EntityMetadataValidator,
+} = require('typeorm/metadata-builder/EntityMetadataValidator');
 const _origValidate = EntityMetadataValidator.prototype.validate;
 EntityMetadataValidator.prototype.validate = function (
   entityMetadata: any,
@@ -19,7 +21,12 @@ EntityMetadataValidator.prototype.validate = function (
     const original: string[] = driver.supportedDataTypes;
     driver.supportedDataTypes = [...original, ...SQLITE_EXTRA_TYPES];
     try {
-      return _origValidate.call(this, entityMetadata, allEntityMetadatas, driver);
+      return _origValidate.call(
+        this,
+        entityMetadata,
+        allEntityMetadatas,
+        driver,
+      );
     } finally {
       driver.supportedDataTypes = original;
     }
@@ -73,8 +80,7 @@ function buildAssociateDto(
     cpf: overrides.cpf ?? CPF_1,
     name: overrides.name ?? 'João da Silva',
     phoneNumber: overrides.phoneNumber ?? '+5511999990001',
-    emergencyPhoneNumber:
-      overrides.emergencyPhoneNumber ?? '+5511999990002',
+    emergencyPhoneNumber: overrides.emergencyPhoneNumber ?? '+5511999990002',
     email: overrides.email ?? 'joao@test.com',
     address: overrides.address ?? BASE_ADDRESS,
     type: overrides.type ?? 'CONTRIBUTING',
@@ -304,7 +310,8 @@ describe('Integration Tests (SQLite)', () => {
     });
 
     it('should find organization by id', async () => {
-      const found = await organizationsService.findOrganizationByIdOrFail(orgId);
+      const found =
+        await organizationsService.findOrganizationByIdOrFail(orgId);
       expect(found.id).toBe(orgId);
       expect(found.organization_name).toBe('Cerro Plata Test Org');
     });
@@ -321,7 +328,11 @@ describe('Integration Tests (SQLite)', () => {
   describe('Users', () => {
     it('should create a user', async () => {
       const user = await usersService.create(
-        buildUserDto({ username: 'testuser', email: 'test@example.com', organizationId: orgId }),
+        buildUserDto({
+          username: 'testuser',
+          email: 'test@example.com',
+          organizationId: orgId,
+        }),
       );
 
       expect(user).toBeDefined();
@@ -333,7 +344,11 @@ describe('Integration Tests (SQLite)', () => {
     it('should throw ConflictException when creating duplicate user', async () => {
       await expect(
         usersService.create(
-          buildUserDto({ username: 'testuser', email: 'test@example.com', organizationId: orgId }),
+          buildUserDto({
+            username: 'testuser',
+            email: 'test@example.com',
+            organizationId: orgId,
+          }),
         ),
       ).rejects.toThrow();
     });
