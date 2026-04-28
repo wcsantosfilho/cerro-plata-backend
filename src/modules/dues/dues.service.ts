@@ -58,7 +58,6 @@ export class DuesService {
       );
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
     const amountToSave = new Decimal(due.amount);
 
     const typeKey = due.type as keyof typeof PaymentTypeEnum;
@@ -68,7 +67,7 @@ export class DuesService {
       organization: organization,
       dueDate: due.dueDate,
       description: due.description,
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+
       amount: amountToSave.toNumber(),
       type: PaymentTypeEnum[typeKey],
       paymentPlan: PaymentPlanEnum[paymentPlanKey],
@@ -89,10 +88,7 @@ export class DuesService {
     const year = parseInt(yearStr, 10);
     const month = parseInt(monthStr, 10);
 
-    this.validatePaymentPlanMonth(
-      params.paymentPlan as PaymentPlanEnum,
-      month,
-    );
+    this.validatePaymentPlanMonth(params.paymentPlan, month);
 
     const eligibleAssociates = await this.associatesService.findEligibleForDues(
       tenantId,
@@ -100,12 +96,8 @@ export class DuesService {
     );
 
     const dueDate = this.getLastDayOfMonth(year, month);
-    const description = this.buildDescription(
-      params.paymentPlan as PaymentPlanEnum,
-      month,
-      year,
-    );
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+    const description = this.buildDescription(params.paymentPlan, month, year);
+
     const amount = new Decimal(params.amount).toNumber();
 
     const createdDues: DueDto[] = [];
@@ -123,7 +115,7 @@ export class DuesService {
         organization,
         dueDate,
         description,
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
         amount,
         type: PaymentTypeEnum.MEMBERSHIP_FEE,
         paymentPlan:
@@ -150,10 +142,7 @@ export class DuesService {
         HttpStatus.BAD_REQUEST,
       );
     }
-    if (
-      paymentPlan === PaymentPlanEnum.SEMIANNUAL &&
-      ![1, 7].includes(month)
-    ) {
+    if (paymentPlan === PaymentPlanEnum.SEMIANNUAL && ![1, 7].includes(month)) {
       throw new HttpException(
         'SEMIANNUAL dues can only be generated in January or July',
         HttpStatus.BAD_REQUEST,
@@ -300,7 +289,7 @@ export class DuesService {
     const paymentPlanKey =
       dueEntity.paymentPlan as keyof typeof PaymentPlanEnum;
     // paymentEntity.amount in create is a number, but in query is a string, so we need to convert it to Decimal first and then to string with 2 decimal places
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+
     const stringedAmount = new Decimal(dueEntity.amount).toFixed(2);
 
     return {
@@ -309,7 +298,7 @@ export class DuesService {
       organizationId: dueEntity.organization.id,
       dueDate: dueEntity.dueDate,
       description: dueEntity.description,
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
       amount: stringedAmount,
       type: PaymentTypeEnum[typeKey],
       paymentPlan: PaymentPlanEnum[paymentPlanKey],
