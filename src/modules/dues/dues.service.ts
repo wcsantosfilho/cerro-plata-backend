@@ -355,6 +355,27 @@ export class DuesService {
     return updatedDue;
   }
 
+  async findByIdAndOrganization(
+    tenantId: string,
+    id: string,
+  ): Promise<DueDto | null> {
+    const dueFound = await this.dueRepository.findOne({
+      where: { id, organization: { id: tenantId } },
+      relations: {
+        organization: true, // Join the 'organization' relation
+      },
+    });
+
+    if (!dueFound) {
+      throw new HttpException(
+        `Due with id: ${id} not found`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    return this.mapEntityToDto(dueFound);
+  }
+
   private mapEntityToDto(dueEntity: DueEntity): DueDto {
     const typeKey = dueEntity.type as keyof typeof PaymentTypeEnum;
     const paymentPlanKey =

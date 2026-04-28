@@ -24,6 +24,7 @@ import { ApiGenerateDueDocs } from './docs/generate-due.doc';
 import { ApiFindAllDueDocs } from './docs/find-all-due.doc';
 import { ApiPartialUpdateDueDoc } from './docs/partial-update-due.doc';
 import { Tenant } from '../../common/tenant/tenant.decorator';
+import { ApiFindByIdDueDoc } from './docs/find-by-id-due.doc';
 
 @ApiTags('dues')
 @UseGuards(AuthGuard, TenantGuard)
@@ -60,6 +61,15 @@ export class DuesController {
     @Query() params: FindAllParameters,
   ): Promise<{ items: DueDto[]; total: number }> {
     return await this.duesService.findAll(tenantId, params);
+  }
+
+  @Get('/:id')
+  @ApiFindByIdDueDoc()
+  async findById(
+    @Tenant() tenantId: string,
+    @Param() params: DueRouteParameters,
+  ): Promise<DueDto | null> {
+    return await this.duesService.findByIdAndOrganization(tenantId, params.id);
   }
 
   @Patch('/:id')
