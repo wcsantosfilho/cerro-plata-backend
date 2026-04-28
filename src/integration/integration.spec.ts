@@ -966,4 +966,114 @@ describe('Integration Tests (SQLite)', () => {
       expect(result.every((d) => d.description === 'Anuidade 2026')).toBe(true);
     });
   });
+
+  // ---------------------------------------------------------------------------
+  // Update Dues (Patch)
+  // ---------------------------------------------------------------------------
+
+  describe('Update Dues (Patch)', () => {
+    let unpaidDueId: string;
+    let paidDueId: string;
+    let courseDueId: string;
+
+    beforeAll(async () => {
+      const unpaid = await duesService.create(
+        buildDueDto({
+          organizationId: orgId,
+          associateId: associate1Id,
+          dueDate: '2026-09-30T00:00:00.000Z',
+          description: 'Due for patch tests',
+          amount: '80.00',
+          type: 'MEMBERSHIP_FEE',
+          paymentPlan: 'MONTHLY',
+        }),
+      );
+      unpaidDueId = unpaid.id!;
+
+      const dueToPay = await duesService.create(
+        buildDueDto({
+          organizationId: orgId,
+          associateId: associate2Id,
+          dueDate: '2026-10-31T00:00:00.000Z',
+          description: 'Due to be paid (patch test)',
+          amount: '90.00',
+          type: 'MEMBERSHIP_FEE',
+          paymentPlan: 'MONTHLY',
+        }),
+      );
+      paidDueId = dueToPay.id!;
+
+      await paymentsService.create(
+        buildPaymentDto({
+          organizationId: orgId,
+          associateId: associate2Id,
+          dueId: paidDueId,
+          dueDate: '2026-10-31T00:00:00.000Z',
+          description: 'Payment for patch test',
+          amount: '90.00',
+          type: 'MEMBERSHIP_FEE',
+        }),
+      );
+
+      const course = await duesService.create(
+        buildDueDto({
+          organizationId: orgId,
+          dueDate: '2026-11-30T00:00:00.000Z',
+          description: 'Course due (patch test)',
+          amount: '50.00',
+          type: 'COURSE',
+          paymentPlan: 'MONTHLY',
+        }),
+      );
+      courseDueId = course.id!;
+    });
+
+    it('should update description of an unpaid due', async () => {
+      const updated = await duesService.update(unpaidDueId, {
+        description: 'Updated description',
+      });
+
+      expect(updated.description).toBe('Updated description');
+      expect(updated.id).toBe(unpaidDueId);
+    });
+
+    it('should update amount of an unpaid due', async () => {
+      const updated = await duesService.update(unpaidDueId, {
+        amount: '95.00',
+      });
+
+      expect(updated.amount).toBe('95.00');
+    });
+
+    it('should fail when updating a non-existent due', async () => {
+      await expect(
+        duesService.update('00000000-0000-0000-0000-000000000000', {
+          description: 'Ghost',
+        }),
+      ).rejects.toMatchObject({ status: HttpStatus.BAD_REQUEST });
+    });
+
+    it('should fail when the due already has payments', async () => {
+      await expect(
+        duesService.update(paidDueId, { description: 'Cannot update' }),
+      ).rejects.toThrow(HttpException);
+
+      await expect(
+        duesService.update(paidDueId, { description: 'Cannot update' }),
+      ).rejects.toMatchObject({
+        message: expect.stringContaining('already has payments'),
+        status: HttpStatus.BAD_REQUEST,
+      });
+    });
+
+    it('should fail when changing type to MEMBERSHIP_FEE without associateId', async () => {
+      await expect(
+        duesService.update(courseDueId, { type: 'MEMBERSHIP_FEE' }),
+      ).rejects.toThrow(HttpException);
+
+      await expect(
+        duesService.update(courseDueId, { type: 'MEMBERSHIP_FEE' }),
+      ).rejects.toMatchObject({ status: HttpStatus.BAD_REQUEST });
+    });
+  });
 });

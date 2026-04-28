@@ -12,6 +12,7 @@ import {
   PaymentPlanEnum,
 } from './due.dto';
 import { Decimal } from 'decimal.js';
+import { PatchDueDto } from './patchDue.dto';
 
 @Injectable()
 export class DuesService {
@@ -58,6 +59,17 @@ export class DuesService {
       );
     }
 
+    // Regra de negócio: Obrigação (Due) do tipo MEMBERSHIP_FEE deve ter um plano de pagamento associado
+    if (
+      (due.type as PaymentTypeEnum) === PaymentTypeEnum.MEMBERSHIP_FEE &&
+      !due.paymentPlan
+    ) {
+      throw new HttpException(
+        'MEMBERSHIP_FEES dues must have an associated paymentPlan',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
     const amountToSave = new Decimal(due.amount);
 
     const typeKey = due.type as keyof typeof PaymentTypeEnum;
@@ -67,7 +79,6 @@ export class DuesService {
       organization: organization,
       dueDate: due.dueDate,
       description: due.description,
-
       amount: amountToSave.toNumber(),
       type: PaymentTypeEnum[typeKey],
       paymentPlan: PaymentPlanEnum[paymentPlanKey],
@@ -138,19 +149,19 @@ export class DuesService {
       ![1, 4, 7, 10].includes(month)
     ) {
       throw new HttpException(
-        'QUARTERLY dues can only be generated in January, April, July, or October',
+        'QUARTERLY dues can only be set in January, April, July, or October',
         HttpStatus.BAD_REQUEST,
       );
     }
     if (paymentPlan === PaymentPlanEnum.SEMIANNUAL && ![1, 7].includes(month)) {
       throw new HttpException(
-        'SEMIANNUAL dues can only be generated in January or July',
+        'SEMIANNUAL dues can only be set in January or July',
         HttpStatus.BAD_REQUEST,
       );
     }
     if (paymentPlan === PaymentPlanEnum.ANNUAL && month !== 1) {
       throw new HttpException(
-        'ANNUAL dues can only be generated in January',
+        'ANNUAL dues can only be set in January',
         HttpStatus.BAD_REQUEST,
       );
     }
@@ -284,6 +295,66 @@ export class DuesService {
     return { items, total };
   }
 
+  async update(id: string, due: PatchDueDto): Promise<DueDto> {
+    const foundDue = await this.dueRepository.findOne({
+      where: { id },
+      relations: {
+        organization: true, // Join the 'organization' relation
+        payments: true, // Join the 'payments' relation
+      },
+    });
+
+    if (!foundDue) {
+      throw new HttpException(
+        `Due with id: ${id} not found`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    // Regra de negócio: Obrigação (Due) do tipo MEMBERSHIP_FEE deve ter um associateId associado
+    if (
+      (due.type as PaymentTypeEnum) === PaymentTypeEnum.MEMBERSHIP_FEE &&
+      !due.associateId
+    ) {
+      throw new HttpException(
+        'MEMBERSHIP_FEES dues must have an associated associateId',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    // Regra de Negócio: Verificar se due já paga pode ser alterada
+    if ((foundDue.payments ?? []).length > 0) {
+      throw new HttpException(
+        `Due with id: ${id} already has payments and cannot be modified`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    // Regra de negócio: Obrigação (Due) do tipo MEMBERSHIP_FEE deve ter um plano de pagamento associado
+    if (
+      (due.type as PaymentTypeEnum) === PaymentTypeEnum.MEMBERSHIP_FEE &&
+      !due.paymentPlan
+    ) {
+      throw new HttpException(
+        'MEMBERSHIP_FEES dues must have an associated paymentPlan',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const month = new Date(due.dueDate ?? foundDue.dueDate).getUTCMonth() + 1; // getUTCMonth is zero-based
+    this.validatePaymentPlanMonth(due.paymentPlan as PaymentPlanEnum, month);
+
+    // Para o patch, precisamos manter os campos que não foram enviados, então buscamos o registro atual e sobrescrevemos apenas os campos enviados
+    const updatedDue = {
+      ...this.mapEntityToDto(foundDue), // mantém os campos atuais
+      ...due, // sobrescreve com os campos enviados no patch
+    };
+
+    await this.dueRepository.update(id, this.mapDtoToEntity(updatedDue));
+
+    return updatedDue;
+  }
+
   private mapEntityToDto(dueEntity: DueEntity): DueDto {
     const typeKey = dueEntity.type as keyof typeof PaymentTypeEnum;
     const paymentPlanKey =
@@ -306,4 +377,17 @@ export class DuesService {
       updatedAt: dueEntity.updatedAt,
     };
   }
+
+  private mapDtoToEntity(dueDto: DueDto): Partial<DueEntity> {
+    const amountToSave = new Decimal(dueDto.amount);
+    return {
+      id: dueDto.id,
+      dueDate: dueDto.dueDate,
+      description: dueDto.description,
+      amount: amountToSave.toNumber(),
+      type: dueDto.type,
+      paymentPlan: dueDto.paymentPlan,
+    };
+  }
 }
+// .toNumber()
