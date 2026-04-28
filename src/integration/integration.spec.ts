@@ -52,7 +52,7 @@ import { PaymentEntity } from '../db/entities/payment.entity';
 import { DueEntity } from '../db/entities/due.entity';
 
 import { AssociateDto } from '../modules/associates/associate.dto';
-import { DueDto } from '../modules/dues/due.dto';
+import { DueDto, GenerateDuesDto, PaymentPlanEnum as DuePaymentPlanEnum } from '../modules/dues/due.dto';
 import { PaymentDto, PaymentTypeEnum } from '../modules/payments/payment.dto';
 import { UserDto } from '../modules/users/user.dto';
 
@@ -807,6 +807,163 @@ describe('Integration Tests (SQLite)', () => {
       expect(result.items.every((p) => p.associateId === associate2Id)).toBe(
         true,
       );
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Generate Dues
+  // ---------------------------------------------------------------------------
+
+  describe('Generate Dues', () => {
+    const CPF_4 = '71428793860'; // SENIOR QUARTERLY
+    const CPF_5 = '87748248800'; // CONTRIBUTING ANNUAL
+
+    let quarterlyAssociateId: string;
+    let annualAssociateId: string;
+
+    beforeAll(async () => {
+      const quarterly = await associatesService.create(
+        buildAssociateDto({
+          organizationId: orgId,
+          associationRecord: '200',
+          cpf: CPF_4,
+          name: 'Quarterly Senior',
+          email: 'quarterly@test.com',
+          type: 'SENIOR',
+          paymentPlan: 'QUARTERLY',
+        }),
+      );
+      quarterlyAssociateId = quarterly.id!;
+
+      const annual = await associatesService.create(
+        buildAssociateDto({
+          organizationId: orgId,
+          associationRecord: '201',
+          cpf: CPF_5,
+          name: 'Annual Contributing',
+          email: 'annual@test.com',
+          type: 'CONTRIBUTING',
+          paymentPlan: 'ANNUAL',
+        }),
+      );
+      annualAssociateId = annual.id!;
+    });
+
+    it('should generate MONTHLY dues only for eligible associates', async () => {
+      const result = await duesService.generateDues(orgId, {
+        paymentPlan: DuePaymentPlanEnum.MONTHLY,
+        referenceMonth: '2026-02',
+        amount: '52.50',
+      } as GenerateDuesDto);
+
+      expect(result.length).toBeGreaterThanOrEqual(1);
+      const ids = result.map((d) => d.associateId);
+      expect(ids).toContain(associate1Id);
+      expect(ids).not.toContain(associate2Id); // FOUNDER — ineligible
+      expect(result.every((d) => d.description === 'Mensalidade 02/2026')).toBe(
+        true,
+      );
+      expect(result.every((d) => d.type === 'MEMBERSHIP_FEE')).toBe(true);
+    });
+
+    it('should skip associates that already have a due in the same month', async () => {
+      const result = await duesService.generateDues(orgId, {
+        paymentPlan: DuePaymentPlanEnum.MONTHLY,
+        referenceMonth: '2026-02',
+        amount: '52.50',
+      } as GenerateDuesDto);
+
+      expect(result.length).toBe(0);
+    });
+
+    it('should reject QUARTERLY dues for an invalid month', async () => {
+      await expect(
+        duesService.generateDues(orgId, {
+          paymentPlan: DuePaymentPlanEnum.QUARTERLY,
+          referenceMonth: '2026-02',
+          amount: '150.00',
+        } as GenerateDuesDto),
+      ).rejects.toThrow(HttpException);
+
+      await expect(
+        duesService.generateDues(orgId, {
+          paymentPlan: DuePaymentPlanEnum.QUARTERLY,
+          referenceMonth: '2026-02',
+          amount: '150.00',
+        } as GenerateDuesDto),
+      ).rejects.toMatchObject({ status: HttpStatus.BAD_REQUEST });
+    });
+
+    it('should generate QUARTERLY dues in April with correct description', async () => {
+      const result = await duesService.generateDues(orgId, {
+        paymentPlan: DuePaymentPlanEnum.QUARTERLY,
+        referenceMonth: '2026-04',
+        amount: '150.00',
+      } as GenerateDuesDto);
+
+      expect(result.length).toBeGreaterThanOrEqual(1);
+      expect(result.map((d) => d.associateId)).toContain(quarterlyAssociateId);
+      expect(
+        result.every((d) => d.description === 'Trimestralidade 04/2026'),
+      ).toBe(true);
+    });
+
+    it('should not generate duplicate QUARTERLY dues for the same month', async () => {
+      const result = await duesService.generateDues(orgId, {
+        paymentPlan: DuePaymentPlanEnum.QUARTERLY,
+        referenceMonth: '2026-04',
+        amount: '150.00',
+      } as GenerateDuesDto);
+
+      expect(result.length).toBe(0);
+    });
+
+    it('should reject SEMIANNUAL dues for an invalid month', async () => {
+      await expect(
+        duesService.generateDues(orgId, {
+          paymentPlan: DuePaymentPlanEnum.SEMIANNUAL,
+          referenceMonth: '2026-04',
+          amount: '300.00',
+        } as GenerateDuesDto),
+      ).rejects.toThrow(HttpException);
+
+      await expect(
+        duesService.generateDues(orgId, {
+          paymentPlan: DuePaymentPlanEnum.SEMIANNUAL,
+          referenceMonth: '2026-04',
+          amount: '300.00',
+        } as GenerateDuesDto),
+      ).rejects.toMatchObject({ status: HttpStatus.BAD_REQUEST });
+    });
+
+    it('should reject ANNUAL dues for a non-January month', async () => {
+      await expect(
+        duesService.generateDues(orgId, {
+          paymentPlan: DuePaymentPlanEnum.ANNUAL,
+          referenceMonth: '2026-03',
+          amount: '600.00',
+        } as GenerateDuesDto),
+      ).rejects.toThrow(HttpException);
+
+      await expect(
+        duesService.generateDues(orgId, {
+          paymentPlan: DuePaymentPlanEnum.ANNUAL,
+          referenceMonth: '2026-03',
+          amount: '600.00',
+        } as GenerateDuesDto),
+      ).rejects.toMatchObject({ status: HttpStatus.BAD_REQUEST });
+    });
+
+    it('should generate ANNUAL dues in January with correct description', async () => {
+      const result = await duesService.generateDues(orgId, {
+        paymentPlan: DuePaymentPlanEnum.ANNUAL,
+        referenceMonth: '2026-01',
+        amount: '600.00',
+      } as GenerateDuesDto);
+
+      expect(result.length).toBeGreaterThanOrEqual(1);
+      expect(result.map((d) => d.associateId)).toContain(annualAssociateId);
+      expect(result.every((d) => d.description === 'Anuidade 2026')).toBe(true);
     });
   });
 });

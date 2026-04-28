@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../../auth/auth.guard';
 import { TenantGuard } from 'src/common/tenant/tenant.guard';
-import { DueDto, FindAllParameters } from './due.dto';
+import { DueDto, FindAllParameters, GenerateDuesDto } from './due.dto';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { DuesService } from './dues.service';
 import { ApiCreateDueDocs } from './docs/create-due.doc';
@@ -30,8 +30,11 @@ export class DuesController {
 
   @Post('generate')
   @ApiGenerateDueDocs()
-  async generateDues(@Tenant() tenantId: string): Promise<DueDto> {
-    return await this.duesService.generateDues(tenantId);
+  async generateDues(
+    @Tenant() tenantId: string,
+    @Body() params: GenerateDuesDto,
+  ): Promise<DueDto[]> {
+    return await this.duesService.generateDues(tenantId, params);
   }
 
   @Get()

@@ -146,3 +146,33 @@ export class DueRouteParameters {
   @IsUUID()
   id: string;
 }
+
+export class GenerateDuesDto {
+  @ApiProperty({
+    description: 'Payment plan for which dues should be generated',
+    example: 'MONTHLY',
+    enum: PaymentPlanEnum,
+  })
+  @IsEnum(PaymentPlanEnum)
+  paymentPlan: PaymentPlanEnum;
+
+  @ApiProperty({
+    description: 'Reference month in YYYY-MM format',
+    example: '2026-05',
+  })
+  @IsString()
+  @Matches(/^\d{4}-(0[1-9]|1[0-2])$/, {
+    message: 'referenceMonth must be in YYYY-MM format',
+  })
+  referenceMonth: string;
+
+  @ApiProperty({
+    description: 'Amount for each generated due',
+    example: '100.00',
+  })
+  @IsString()
+  @Matches(/^\d+(\.\d{1,2})?$/, {
+    message: 'amount must be a decimal string with up to 2 decimal places',
+  })
+  amount: string;
+}

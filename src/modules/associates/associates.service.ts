@@ -333,6 +333,27 @@ export class AssociatesService {
     return lastValue;
   }
 
+  async findEligibleForDues(
+    tenantId: string,
+    paymentPlan: string,
+  ): Promise<AssociateEntity[]> {
+    const ineligibleTypes = [
+      AssociateTypeEnum.FOUNDER,
+      AssociateTypeEnum.REDEEMED,
+      AssociateTypeEnum.BENEMERIT,
+      AssociateTypeEnum.HONORARY,
+    ];
+    return this.associateRepository
+      .createQueryBuilder('associate')
+      .innerJoinAndSelect('associate.organization', 'organization')
+      .where('associate.organization_id = :tenantId', { tenantId })
+      .andWhere('associate.payment_plan = :paymentPlan', { paymentPlan })
+      .andWhere('associate.type NOT IN (:...ineligibleTypes)', {
+        ineligibleTypes,
+      })
+      .getMany();
+  }
+
   async findAssociateByIdOrFail(id: string): Promise<AssociateEntity> {
     const associateFound = await this.associateRepository.findOne({
       where: { id },

@@ -6,6 +6,7 @@ import { OrganizationsService } from '../organizations/organizations.service';
 import { AssociatesService } from '../associates/associates.service';
 import {
   DueDto,
+  GenerateDuesDto,
   PaymentTypeEnum,
   FindAllParameters,
   PaymentPlanEnum,
@@ -77,34 +78,140 @@ export class DuesService {
     return this.mapEntityToDto(createdDue);
   }
 
-  async generateDues(tenantId: string): Promise<DueDto> {
-    // Busca a organização para garantir que existe
-    let organization;
-    if (tenantId) {
-      organization =
-        await this.organizationsService.findOrganizationByIdOrFail(tenantId);
+  async generateDues(
+    tenantId: string,
+    params: GenerateDuesDto,
+  ): Promise<DueDto[]> {
+    const organization =
+      await this.organizationsService.findOrganizationByIdOrFail(tenantId);
+
+    const [yearStr, monthStr] = params.referenceMonth.split('-');
+    const year = parseInt(yearStr, 10);
+    const month = parseInt(monthStr, 10);
+
+    this.validatePaymentPlanMonth(
+      params.paymentPlan as PaymentPlanEnum,
+      month,
+    );
+
+    const eligibleAssociates = await this.associatesService.findEligibleForDues(
+      tenantId,
+      params.paymentPlan,
+    );
+
+    const dueDate = this.getLastDayOfMonth(year, month);
+    const description = this.buildDescription(
+      params.paymentPlan as PaymentPlanEnum,
+      month,
+      year,
+    );
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+    const amount = new Decimal(params.amount).toNumber();
+
+    const createdDues: DueDto[] = [];
+    for (const associate of eligibleAssociates) {
+      const alreadyHasDue = await this.hasExistingDueForMonth(
+        associate.id!,
+        tenantId,
+        year,
+        month,
+      );
+      if (alreadyHasDue) continue;
+
+      const dueToSave: Partial<DueEntity> = {
+        associate,
+        organization,
+        dueDate,
+        description,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        amount,
+        type: PaymentTypeEnum.MEMBERSHIP_FEE,
+        paymentPlan:
+          PaymentPlanEnum[params.paymentPlan as keyof typeof PaymentPlanEnum],
+      };
+
+      const created = await this.dueRepository.save(dueToSave);
+      createdDues.push(this.mapEntityToDto(created));
     }
 
-    // Regra de Negócio: Verifica se a Organization existe
-    if (tenantId && !organization) {
+    return createdDues;
+  }
+
+  private validatePaymentPlanMonth(
+    paymentPlan: PaymentPlanEnum,
+    month: number,
+  ): void {
+    if (
+      paymentPlan === PaymentPlanEnum.QUARTERLY &&
+      ![1, 4, 7, 10].includes(month)
+    ) {
       throw new HttpException(
-        `Organization with id: ${tenantId} not found`,
+        'QUARTERLY dues can only be generated in January, April, July, or October',
         HttpStatus.BAD_REQUEST,
       );
     }
+    if (
+      paymentPlan === PaymentPlanEnum.SEMIANNUAL &&
+      ![1, 7].includes(month)
+    ) {
+      throw new HttpException(
+        'SEMIANNUAL dues can only be generated in January or July',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    if (paymentPlan === PaymentPlanEnum.ANNUAL && month !== 1) {
+      throw new HttpException(
+        'ANNUAL dues can only be generated in January',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
 
-    console.log('Gerando dues para organização:', tenantId);
-    const dueToSave: Partial<DueEntity> = {
-      //   associate: associateToSave,
-      //   organizationId: organization?.id,
-      //   dueDate: due.dueDate,
-      //   description: due.description,
-      //   amount: due.amount,
-      //   type: PaymentTypeEnum[typeKey],
-    };
+  private async hasExistingDueForMonth(
+    associateId: string,
+    organizationId: string,
+    year: number,
+    month: number,
+  ): Promise<boolean> {
+    const startOfMonth = `${year}-${String(month).padStart(2, '0')}-01`;
+    const startOfNextMonth =
+      month === 12
+        ? `${year + 1}-01-01`
+        : `${year}-${String(month + 1).padStart(2, '0')}-01`;
 
-    const createdDue = await this.dueRepository.save(dueToSave);
-    return this.mapEntityToDto(createdDue);
+    const existing = await this.dueRepository
+      .createQueryBuilder('due')
+      .where('due.associate_id = :associateId', { associateId })
+      .andWhere('due.organization_id = :organizationId', { organizationId })
+      .andWhere(
+        'due.due_date >= :startOfMonth AND due.due_date < :startOfNextMonth',
+        { startOfMonth, startOfNextMonth },
+      )
+      .getOne();
+
+    return existing !== null;
+  }
+
+  private getLastDayOfMonth(year: number, month: number): string {
+    return new Date(Date.UTC(year, month, 0)).toISOString();
+  }
+
+  private buildDescription(
+    paymentPlan: PaymentPlanEnum,
+    month: number,
+    year: number,
+  ): string {
+    const mm = String(month).padStart(2, '0');
+    switch (paymentPlan) {
+      case PaymentPlanEnum.QUARTERLY:
+        return `Trimestralidade ${mm}/${year}`;
+      case PaymentPlanEnum.SEMIANNUAL:
+        return `Semestralidade ${mm}/${year}`;
+      case PaymentPlanEnum.ANNUAL:
+        return `Anuidade ${year}`;
+      default:
+        return `Mensalidade ${mm}/${year}`;
+    }
   }
 
   async findDueByIdOrFail(id: string): Promise<DueEntity> {
